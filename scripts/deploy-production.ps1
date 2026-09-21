@@ -8,14 +8,16 @@ $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $deployRoot = Join-Path $projectRoot '.deploy'
 $releaseRoot = Join-Path $deployRoot 'release'
 $ftpConfig = Join-Path $deployRoot 'ftp.curl.conf'
-$remoteBase = 'ftp://ftp.jogartcg.com.br/www'
+# A conta FTP da KingHost ja inicia em /www. Caminhos abaixo deste endereco
+# sao relativos a esse diretorio; acrescentar /www criaria /www/www.
+$remoteBase = 'ftp://ftp.jogartcg.com.br'
 
 & (Join-Path $PSScriptRoot 'build-release.ps1')
 
 if (-not (Test-Path -LiteralPath $ftpConfig -PathType Leaf)) {
     throw 'Arquivo privado .deploy/ftp.curl.conf nao encontrado.'
 }
-& curl.exe --config $ftpConfig --list-only $remoteBase | Out-Null
+& curl.exe --config $ftpConfig --list-only "$remoteBase/" | Out-Null
 if ($LASTEXITCODE -ne 0) {
     throw 'Nao foi possivel acessar o diretorio remoto de producao.'
 }
