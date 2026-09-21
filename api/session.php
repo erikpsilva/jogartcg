@@ -44,11 +44,12 @@ function requireCsrf(): void
 {
     $provided = (string) ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
     if ($provided === '' || !hash_equals(csrfToken(), $provided)) {
+        // 403, nao 419: o Apache nao conhece o 419 e o transforma em 500.
         respond([
             'success' => false,
             'error' => 'invalid_csrf_token',
             'message' => 'Sua sessao mudou. Atualize a pagina e tente novamente.',
-        ], 419);
+        ], 403);
     }
 }
 

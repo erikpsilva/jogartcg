@@ -1,6 +1,7 @@
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CardTile } from '../components/CardTile';
+import { BetaNotice } from '../components/BetaNotice';
 import {
   getCards,
   getFilters,
@@ -97,6 +98,7 @@ export function CatalogPage() {
 
   return (
     <div className="catalog-page page-container">
+      <BetaNotice />
       <section className="catalog-hero">
         <div className="catalog-hero__copy">
           <span className="eyebrow"><i /> Catálogo Disney Lorcana</span>

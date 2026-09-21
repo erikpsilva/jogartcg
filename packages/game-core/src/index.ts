@@ -36,3 +36,5 @@ export * from './cards.js';
 export * from './engine.js';
 export * from './bot.js';
 export * from './training.js';
+export * from './deck-cards.js';
+export * from './multiplayer.js';

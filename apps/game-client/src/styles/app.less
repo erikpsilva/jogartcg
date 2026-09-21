@@ -231,6 +231,53 @@ img { max-width: 100%; }
 }
 
 .catalog-page { padding-top: 48px; }
+.beta-notice { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 34px; padding: 22px 26px; border: 1px solid #f4bf28; border-left: 5px solid #f4bf28; background: linear-gradient(110deg,#241b04,#10131a 72%); box-shadow: 0 12px 40px #0006; }
+.beta-notice span { display: block; margin-bottom: 5px; color: #f4bf28; font-size: 12px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase; }
+.beta-notice strong { display: block; color: #fff; font-size: clamp(18px,2vw,24px); }
+.beta-notice p { margin: 6px 0 0; color: #b9c3d4; }
+.beta-notice button { flex: none; padding: 12px 18px; border: 1px solid #f4bf28; color: #17120a; background: #f4bf28; font-weight: 700; cursor: pointer; }
+.beta-modal { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 18px; background: #03060ae6; }
+.beta-modal > section { position: relative; width: min(620px,100%); max-height: calc(100dvh - 36px); overflow: auto; padding: 30px; border: 1px solid #c99a42; background: linear-gradient(145deg,#172238,#090d16); box-shadow: 0 25px 100px #000; }
+.beta-modal h2 { margin: 8px 40px 12px 0; font-size: 28px; }
+.beta-modal__close { position: absolute; top: 12px; right: 12px; width: 34px; height: 34px; border: 1px solid #637089; border-radius: 50%; color: #fff; background: #101827; font-size: 22px; cursor: pointer; }
+.beta-modal form, .beta-modal label { display: grid; gap: 8px; }
+.beta-modal form { gap: 16px; }
+.beta-modal textarea, .beta-modal input { width: 100%; padding: 12px; border: 1px solid #46536a; color: #fff; background: #080d15; font: inherit; }
+.beta-modal textarea { min-height: 150px; resize: vertical; }
+.beta-modal__login > div { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.room-preview { margin-top: 28px; padding: clamp(22px,4vw,42px); border: 1px solid #c99a42; background: radial-gradient(circle at top right,#2c1848 0,transparent 38%),#0d121c; box-shadow: 0 20px 70px #0007; }
+.room-preview__heading h2 { margin: 8px 0; font-size: clamp(26px,4vw,42px); }
+.room-preview__heading p { color: #aeb9ca; }
+.room-preview__setup { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px; margin: 28px 0; }
+.room-preview__setup label, .room-code { display: grid; gap: 9px; }
+.room-preview__setup input, .room-preview__setup select { min-height: 52px; padding: 0 14px; border: 1px solid #53617a; color: #fff; background: #080d15; font: inherit; }
+.room-code strong { color: #f4bf28; font-size: clamp(22px,4vw,34px); letter-spacing: .12em; }
+.room-code small { color: #8491a5; }
+.room-players { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.room-players article { display: grid; gap: 8px; padding: 20px; border: 1px solid #354158; background: #111827; }
+.room-players article > span { color: #f4bf28; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+.room-players article > small { color: #9da9bb; }
+.room-players button { justify-self: start; margin-top: 8px; padding: 10px 16px; border: 1px solid #4f5d72; color: #7f8a9a; background: #161d29; }
+.room-preview__status { margin: 20px 0 0; color: #b8c2d2; }
+// Salas multiplayer ligadas ao servidor: estados ativos sobre o layout do lobby.
+.room-players button:not(:disabled) { color: #08090b; border-color: #ffe372; background: linear-gradient(135deg, @primary-light, @primary); cursor: pointer; }
+.room-players button[aria-pressed="true"] { color: @text; border-color: #4f5d72; background: #161d29; }
+.room-players article.is-ready { border-color: fade(@primary, 70%); box-shadow: inset 0 0 0 1px fade(@primary, 25%); }
+.room-players article.is-ready > small { color: @primary-light; }
+.room-preview__setup label .button { justify-self: start; }
+.room-preview__setup label > small { color: #8491a5; }
+.room-code__copy { justify-self: start; padding: 8px 14px; border: 1px solid fade(@primary, 55%); color: @primary-light; background: transparent; font-size: 12px; font-weight: 600; text-transform: uppercase; }
+.room-preview__leave { margin-top: 18px; padding: 10px 16px; border: 1px solid #4f5d72; color: #b8c2d2; background: transparent; }
+.room-preview__leave:hover:not(:disabled) { border-color: @danger; color: @danger; }
+.room-preview > .feedback { margin: 0 0 18px; }
+.room-resume { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; margin: 18px 0; }
+.table-player-card__presence { display: block; margin-top: 4px; font-size: 12px; }
+.table-player-card__presence::before { content: ''; display: inline-block; width: 7px; height: 7px; margin-right: 6px; border-radius: 50%; }
+.table-player-card__presence.is-online { color: #9fe3bb; }
+.table-player-card__presence.is-online::before { background: #28c96d; box-shadow: 0 0 9px #28c96d; }
+.table-player-card__presence.is-offline { color: #f0a3a9; }
+.table-player-card__presence.is-offline::before { background: #e54b58; }
+.bot-table[aria-busy="true"] .game-board { cursor: progress; }
 
 .catalog-hero {
   position: relative;
@@ -1011,6 +1058,10 @@ body.modal-open { overflow: hidden; }
 }
 
 @media (max-width: 640px) {
+  .beta-notice { align-items: stretch; flex-direction: column; gap: 16px; margin-bottom: 22px; padding: 18px; }
+  .beta-notice button { width: 100%; }
+  .beta-modal > section { padding: 24px 18px; }
+  .room-preview__setup, .room-players { grid-template-columns: 1fr; }
   .user-chip b { display: none; }
   .profile-page { width: calc(100% - 28px); padding-top: 34px; }
   .saved-decks-grid { grid-template-columns: 1fr; }

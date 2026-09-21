@@ -8,6 +8,8 @@ require_once __DIR__ . '/payload.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/decks.php';
 require_once __DIR__ . '/game.php';
+require_once __DIR__ . '/bugs.php';
+require_once __DIR__ . '/rooms.php';
 require_once dirname(__DIR__) . '/config/site_settings.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -96,6 +98,11 @@ if (($segments[0] ?? '') !== 'v1') {
             '/api/v1/decks/import',
             '/api/v1/game/decks/{id}',
             '/api/v1/game/catalog',
+            '/api/v1/rooms',
+            '/api/v1/rooms/current',
+            '/api/v1/rooms/join',
+            '/api/v1/rooms/{id}',
+            '/api/v1/rooms/{id}/poll',
         ],
     ]);
 }
@@ -116,6 +123,8 @@ if ($resource === 'settings') {
 handleAuthRoutes($pdo, $segments, $requestMethod);
 handleDeckRoutes($pdo, $segments, $requestMethod);
 handleGameRoutes($pdo, $segments, $requestMethod);
+handleBugRoutes($pdo, $segments, $requestMethod);
+handleRoomRoutes($pdo, $segments, $requestMethod);
 
 // Fora de /auth a API permanece somente leitura.
 if ($requestMethod !== 'GET') {

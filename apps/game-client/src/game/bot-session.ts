@@ -1,7 +1,7 @@
-import { compileCardRules, createGame, type GameCard, type GameState } from '@jogartcg/game-core';
+import { buildGameCards, createGame, type DisplayGameCard, type GameState } from '@jogartcg/game-core';
 import type { GameDeck } from '../services/game-api';
 
-export type DisplayGameCard = GameCard & { fullName: string; displayName: string; textPt: string };
+export type { DisplayGameCard };
 export type InkColor = 'amber' | 'amethyst' | 'emerald' | 'ruby' | 'sapphire' | 'steel';
 export interface BotMatch {
   version: 1;
@@ -29,8 +29,13 @@ function deckInkColors(colors: readonly string[], fallback: InkColor): InkColor[
 }
 
 export function chooseInkColors(playerDeck: GameDeck, botDeck: GameDeck): BotMatch['inkColors'] {
-  const player = deckInkColors(playerDeck.colors, 'sapphire');
-  const bot = deckInkColors(botDeck.colors, 'amethyst');
+  return chooseInkColorsFromColors(playerDeck.colors, botDeck.colors);
+}
+
+/** Same choice from color names only (online matches never receive the opponent deck). */
+export function chooseInkColorsFromColors(playerColors: readonly string[], botColors: readonly string[]): BotMatch['inkColors'] {
+  const player = deckInkColors(playerColors, 'sapphire');
+  const bot = deckInkColors(botColors, 'amethyst');
   const playerExclusive = player.find((color) => !bot.includes(color));
   const botExclusive = bot.find((color) => !player.includes(color));
   if (playerExclusive && botExclusive) return { player: playerExclusive, bot: botExclusive };
@@ -45,23 +50,7 @@ export function inkBottleAsset(color: InkColor): string {
 }
 
 export function gameDeckCards(deck: GameDeck): DisplayGameCard[] {
-  return deck.cards.flatMap(({ card, quantity }) => {
-    const compiledRules = compileCardRules(card);
-    const definition: DisplayGameCard = {
-      id: card.id, name: card.original.name || card.name,
-      fullName: card.original.full_name || card.full_name, displayName: card.full_name,
-      type: card.original.type as GameCard['type'], cost: card.cost ?? 0, inkwell: card.inkwell,
-      strength: card.strength ?? 0, willpower: card.willpower ?? 0, lore: card.lore ?? 0,
-      moveCost: card.move_cost ?? 0, subtypes: card.original.subtypes ?? [],
-      image: card.image.full || card.image.thumbnail || '',
-      text: card.original.full_text || '', textPt: card.pt_br.full_text || card.original.full_text || '',
-      // Bot matches are currently an explicit local test environment. Keep every
-      // rule the compiler understood and treat only the unrecognized clauses as
-      // text without an automatic effect, so real saved decks can enter the table.
-      rules: compiledRules.supported ? compiledRules : { ...compiledRules, supported: true, unsupported: [] },
-    };
-    return Array.from({ length: quantity }, () => definition);
-  });
+  return buildGameCards(deck.cards);
 }
 
 export function beginBotMatch(userId: number, playerName: string, playerDeck: GameDeck, botDeck: GameDeck): BotMatch {
