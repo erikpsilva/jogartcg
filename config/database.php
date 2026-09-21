@@ -3,11 +3,36 @@
 declare(strict_types=1);
 
 /**
- * Credenciais podem vir do ambiente do servidor ou do arquivo local
- * config/database.credentials.php, que e ignorado pelo Git.
+ * Em producao, as credenciais ficam fora da raiz publica:
+ * /home/USUARIO/config/database.credentials.php
+ *
+ * No ambiente local, um arquivo config/database.credentials.php continua
+ * opcional e ignorado pelo Git.
  */
+$readEnvironmentValue = static function (string $name): string {
+    $value = getenv($name);
+    if (is_string($value) && $value !== '') {
+        return $value;
+    }
+
+    $serverValue = $_SERVER[$name] ?? null;
+    return is_string($serverValue) ? $serverValue : '';
+};
+
+$httpHost = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+$isLocalHost = $httpHost === '' || str_contains($httpHost, 'localhost') || str_starts_with($httpHost, '127.0.0.1');
+$defaultEnvironment = $isLocalHost ? 'local' : 'production';
+$appEnvironment = strtolower($readEnvironmentValue('APP_ENV') ?: $defaultEnvironment);
+$isProduction = $appEnvironment === 'production';
+
+$configuredCredentialsFile = $readEnvironmentValue('JOGARTCG_DB_CONFIG');
+$databaseCredentialsFile = $configuredCredentialsFile !== ''
+    ? $configuredCredentialsFile
+    : ($isProduction
+        ? dirname(__DIR__, 2) . '/config/database.credentials.php'
+        : __DIR__ . '/database.credentials.php');
+
 $databaseCredentials = [];
-$databaseCredentialsFile = __DIR__ . '/database.credentials.php';
 
 if (is_file($databaseCredentialsFile)) {
     $loadedCredentials = require $databaseCredentialsFile;
@@ -30,12 +55,6 @@ $readDatabaseSetting = static function (string $environmentName, string $fileKey
     $fileValue = $databaseCredentials[$fileKey] ?? null;
     return is_string($fileValue) && $fileValue !== '' ? $fileValue : $default;
 };
-
-$httpHost = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
-$isLocalHost = $httpHost === '' || str_contains($httpHost, 'localhost') || str_starts_with($httpHost, '127.0.0.1');
-$defaultEnvironment = $isLocalHost ? 'local' : 'production';
-$appEnvironment = strtolower($readDatabaseSetting('APP_ENV', 'environment', $defaultEnvironment));
-$isProduction = $appEnvironment === 'production';
 
 define('DB_HOST', $readDatabaseSetting('JOGARTCG_DB_HOST', 'host', 'localhost'));
 define('DB_NAME', $readDatabaseSetting('JOGARTCG_DB_NAME', 'name', $isProduction ? 'jogartcg' : 'jogartcg_db'));

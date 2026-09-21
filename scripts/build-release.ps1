@@ -39,6 +39,15 @@ try {
         Copy-Item -Destination $releaseConfig
 
     $files = @(Get-ChildItem -LiteralPath $releaseRoot -File -Recurse)
+    $forbiddenFiles = @($files | Where-Object {
+        $_.Name -match '(?i)(credentials|secret|\.env|\.key|\.pem)' -or
+        $_.FullName -match '(?i)database\.credentials\.php$'
+    })
+    if ($forbiddenFiles.Count -gt 0) {
+        $names = ($forbiddenFiles | ForEach-Object { $_.FullName.Substring($releaseRoot.Length + 1) }) -join ', '
+        throw "Release bloqueada: arquivo sensivel encontrado ($names)."
+    }
+
     $size = ($files | Measure-Object -Property Length -Sum).Sum
     Write-Host ("Release pronta: {0} arquivos, {1:N2} MB" -f $files.Count, ($size / 1MB))
     Write-Host $releaseRoot

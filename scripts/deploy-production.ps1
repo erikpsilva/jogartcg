@@ -8,7 +8,6 @@ $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $deployRoot = Join-Path $projectRoot '.deploy'
 $releaseRoot = Join-Path $deployRoot 'release'
 $ftpConfig = Join-Path $deployRoot 'ftp.curl.conf'
-$databaseCredentials = Join-Path $deployRoot 'database.credentials.php'
 $remoteBase = 'ftp://ftp.jogartcg.com.br/www'
 
 & (Join-Path $PSScriptRoot 'build-release.ps1')
@@ -16,10 +15,6 @@ $remoteBase = 'ftp://ftp.jogartcg.com.br/www'
 if (-not (Test-Path -LiteralPath $ftpConfig -PathType Leaf)) {
     throw 'Arquivo privado .deploy/ftp.curl.conf nao encontrado.'
 }
-if (-not (Test-Path -LiteralPath $databaseCredentials -PathType Leaf)) {
-    throw 'Arquivo privado .deploy/database.credentials.php nao encontrado.'
-}
-
 & curl.exe --config $ftpConfig --list-only $remoteBase | Out-Null
 if ($LASTEXITCODE -ne 0) {
     throw 'Nao foi possivel acessar o diretorio remoto de producao.'
@@ -33,7 +28,6 @@ Write-Host 'Arquivos permitidos para producao:'
 $releaseFiles | ForEach-Object {
     Write-Host ('  ' + $_.FullName.Substring($releasePrefixLength).Replace('\', '/'))
 }
-Write-Host '  config/database.credentials.php (arquivo privado)'
 
 if (-not $Publish) {
     Write-Host ''
@@ -53,12 +47,6 @@ foreach ($file in $releaseFiles) {
     if ($LASTEXITCODE -ne 0) {
         throw "Falha ao enviar $relativePath"
     }
-}
-
-Write-Host 'Enviando configuracao privada do banco'
-& curl.exe --config $ftpConfig --ftp-create-dirs --upload-file $databaseCredentials "$remoteBase/config/database.credentials.php"
-if ($LASTEXITCODE -ne 0) {
-    throw 'Falha ao enviar a configuracao privada do banco.'
 }
 
 Write-Host 'Publicacao concluida.'

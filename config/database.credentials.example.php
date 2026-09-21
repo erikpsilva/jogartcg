@@ -1,5 +1,8 @@
 <?php
 
+// Em producao, envie manualmente este arquivo para:
+// /config/database.credentials.php, fora da pasta publica /www.
+
 return [
     'environment' => 'production',
     'host' => 'localhost',
