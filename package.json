@@ -1,0 +1,29 @@
+{
+  "name": "jogartcg",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "apps/*",
+    "packages/*",
+    "services/*"
+  ],
+  "scripts": {
+    "dev": "gulp",
+    "build": "npm run build:core && npm run build:client && npm run build:server",
+    "build:core": "npm run build --workspace @jogartcg/game-core",
+    "build:client": "npm run build --workspace @jogartcg/game-client",
+    "build:server": "npm run build --workspace @jogartcg/game-server",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "mobile:sync": "npm run cap:sync --workspace @jogartcg/game-client",
+    "mobile:android": "npm run cap:open:android --workspace @jogartcg/game-client",
+    "mobile:ios": "npm run cap:open:ios --workspace @jogartcg/game-client"
+  },
+  "devDependencies": {
+    "browser-sync": "^3.0.4",
+    "gulp": "^5.0.1",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-less": "^5.0.0",
+    "gulp-rename": "^2.1.0"
+  }
+}

@@ -1,0 +1,37 @@
+# Dependencias instaladas e copias isoladas durante recuperacao
+node_modules/
+**/node_modules/
+.node_modules*/
+**/.node_modules*/
+
+# Builds intermediarios (o build web publicado em /client e versionado)
+**/dist/
+**/build/
+*.tsbuildinfo
+
+# Configuracoes locais e segredos
+.env
+.env.*
+!.env.example
+*.local
+*.pem
+*.key
+*.keystore
+*.jks
+
+# Temporarios, logs e artefatos de recuperacao
+.tools/
+storage/tmp/
+*.log
+*.tmp
+package-lock.*recovery*.json
+package-lock.corrupt*.json
+__pycache__/
+*.py[cod]
+
+# IDE e sistema operacional
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+desktop.ini

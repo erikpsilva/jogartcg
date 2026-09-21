@@ -1,0 +1,14 @@
+Options -Indexes
+RewriteEngine On
+
+RewriteRule ^config/ - [F,L]
+
+# Encaminha as rotas REST para o controlador da API.
+RewriteRule ^api(?:/.*)?$ api/index.php [QSA,L]
+
+# Mantem arquivos e diretorios reais acessiveis, incluindo client e api.
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]

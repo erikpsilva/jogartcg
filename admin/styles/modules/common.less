@@ -1,0 +1,193 @@
+//principais
+*,html {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+body{
+    font-family: @font;
+    font-size: 16px;
+    font-weight: @regular;
+    color: @colorFont;
+}
+ul, li, p, a, h1, h2, h3, h4, h5, h6{
+    margin: 0;
+    padding: 0;
+}
+
+li{
+    list-style: none;
+}
+
+a {
+    color: @colorFont;
+    text-decoration: none !important;
+}
+
+h1, h2, h3, h4, h5, h6{
+    font-weight: @regular;
+    margin-bottom: 15px;
+    span {
+        font-weight: @semiBold;
+    }
+}
+
+//FORMULARIO
+.formGroup {
+    border: 1px solid @borderColor;
+    background: @bgBoxContent;
+    padding: 30px;
+    @media @tabletSM {
+        padding: 15px;
+    }
+    .radius;
+    &__divisor {
+        h3 {
+            border-bottom: 1px solid @borderColor;
+            margin-bottom: 10px;
+            padding: 5px 0;
+        }
+    }
+    &__item {
+        position: relative;
+        label {
+            display: block;
+            font-size: 16px;
+            margin-bottom: 5px;
+            width: 100%;
+        }
+        input, select, textarea {
+            border: 1px solid @borderColor;
+            font-family: @font;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 20px;
+            height: 55px;
+            padding:10px;
+            .radius;
+            &:focus-visible {
+                border: 2px solid @secundary;
+                outline: none;
+            }
+        }
+        textarea {
+            font-family: @font;
+            font-size: 16px;
+            height: 150px;
+        }
+        .errorText {
+            bottom:20px;
+            display: none;
+            color: @error;
+            font-size: 11px;
+            left: 5px;
+            padding: 2px 6px;
+            position: absolute;
+            width: 100%;
+            &.show {
+                display: block;
+            }
+        }
+        
+        &.error {
+            .input, select, textarea {
+                border: 1px solid @error;
+            }
+            .errorText {
+                display: block;
+            }
+        }
+    }
+    
+    .btn {
+        float: right;
+    }
+}
+
+.btn {
+    cursor: pointer;
+    font-family: @font;
+    font-size: 16px;
+    font-weight: @semiBold;
+    padding: 15px;
+    text-transform: uppercase;
+    .radius;
+    .transition;
+    &--primary {
+        border: 1px solid @white;
+        background: @primary;
+        color: @white;
+        &:hover {
+            border: 1px solid @primary;
+            background: @white;
+            color: @primary;
+        }
+    }
+    &--error {
+        border: 1px solid @white;
+        background: @error;
+        color: @white;
+        &:hover {
+            border: 1px solid @error;
+            background: @white;
+            color: @error;
+        }
+    }
+    &--alert {
+        border: 1px solid @white;
+        background: @alert;
+        color: @white;
+        &:hover {
+            border: 1px solid @alert;
+            background: @white;
+            color: @alert;
+        }
+    }
+    &--gray {
+        border: 1px solid @btnGray;
+        background: @btnGray;
+        color: @white;
+        &:hover {
+            background: darken(@btnGray, 12%);
+            border: 1px solid darken(@btnGray, 12%);
+        }
+    }
+}
+
+.overlay {
+    background: rgba(0,0,0, 0.7);
+    bottom: 0;
+    height: 100%;
+    left: 0;
+    right: 0;
+    position:fixed;
+    top: 0;
+    width: 100%;
+    z-index: 4;
+    &.overlayForm {
+        .msg {
+            color: @white;
+            font-size:22px;
+            .center-all
+        }
+    }
+}
+
+
+
+  /* HTML: <div class="loader"></div> */
+.loader {
+    --c:no-repeat linear-gradient(@primary 0 0);
+    background: var(--c),var(--c),@secundary;
+    background-size: 60% 100%;
+    animation: l16 3s infinite;
+    height: 4px;
+    position: absolute;
+    width: 100%;
+    z-index: 5;
+}
+@keyframes l16 {
+    0%   {background-position:-150% 0,-150% 0}
+    66%  {background-position: 250% 0,-150% 0}
+    100% {background-position: 250% 0, 250% 0}
+}

@@ -1,0 +1,35 @@
+import { Link } from 'react-router-dom';
+
+export function AppFooter() {
+  return (
+    <footer className="site-footer">
+      <div className="site-footer__grid">
+        <div className="site-footer__brand">
+          <Link className="brand" to="/cartas">
+            <img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" />
+          </Link>
+          <p>Consulte cartas, monte seus decks e prepare-se para jogar em qualquer dispositivo.</p>
+        </div>
+
+        <div>
+          <strong>Plataforma</strong>
+          <Link to="/cartas">Catálogo</Link>
+          <Link to="/decks">Montar deck</Link>
+          <Link to="/jogar">Mesa de jogo</Link>
+        </div>
+
+        <div>
+          <strong>Conta</strong>
+          <Link to="/entrar">Entrar</Link>
+          <Link to="/cadastro">Criar conta</Link>
+          <span>Web · Android · iOS</span>
+        </div>
+      </div>
+
+      <div className="site-footer__legal">
+        <span>© {new Date().getFullYear()} Jogar TCG</span>
+        <p>Projeto independente. Disney Lorcana e suas imagens pertencem aos respectivos titulares.</p>
+      </div>
+    </footer>
+  );
+}

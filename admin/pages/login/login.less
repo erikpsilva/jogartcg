@@ -1,0 +1,25 @@
+.adminLogin {
+   display: flex;
+   align-items: center;
+   justify-content: center;
+   min-height: 100vh;
+   min-height: 100dvh;
+   padding: 24px;
+   &__content {
+        width: 100%;
+        max-width: 600px;
+        &__logo {
+            display: block;
+            margin: 0 auto 15px auto;
+            max-width: 100%;
+            height: auto;
+        }
+   }
+   @media @mobileLG {
+       padding: 16px;
+       .formGroup .btn { width: 100%; }
+   }
+   @media (max-height: 500px) {
+       align-items: flex-start;
+   }
+}

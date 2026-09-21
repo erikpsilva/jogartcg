@@ -1,0 +1,74 @@
+.adminLayout {
+    display: flex;
+    min-height: calc(100vh - 70px);
+
+    &__content {
+        flex: 1;
+        overflow: auto;
+        padding: 30px;
+    }
+}
+
+.sidebar {
+    background: @white;
+    border-right: 1px solid @borderColor;
+    flex-shrink: 0;
+    width: 250px;
+    .transition(transform 0.3s ease);
+
+    &__menu {
+        padding: 10px 0;
+    }
+
+    &__link {
+        border-left: 3px solid transparent;
+        color: @colorFont;
+        display: block;
+        font-size: 12px;
+        font-weight: @semiBold;
+        letter-spacing: 1px;
+        padding: 14px 25px;
+        text-transform: uppercase;
+        .transition;
+
+        &:hover {
+            background: @bgBoxContent;
+            border-left-color: @primary;
+            color: @primary;
+        }
+
+        &--active {
+            background: @bgBoxContent;
+            border-left-color: @primary;
+            color: @primary;
+        }
+    }
+
+    &__overlay {
+        background: rgba(0, 0, 0, 0.5);
+        bottom: 0;
+        display: none;
+        left: 0;
+        position: fixed;
+        right: 0;
+        top: 0;
+        z-index: 9;
+
+        &.show {
+            display: block;
+        }
+    }
+
+    @media @tabletSM {
+        height: 100vh;
+        left: 0;
+        position: fixed;
+        top: 0;
+        transform: translateX(-100%);
+        z-index: 10;
+
+        &.open {
+            transform: translateX(0);
+        }
+    }
+}

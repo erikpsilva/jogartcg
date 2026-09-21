@@ -1,0 +1,78 @@
+.header {
+    background: @black;
+    width: 100%;
+
+    &__row {
+        align-items: center;
+        min-height: 70px;
+
+        @media @tabletSM {
+            min-height: 55px;
+        }
+    }
+
+    &__logo {
+        align-items: center;
+        display: flex;
+        gap: 15px;
+
+        img {
+            max-height: 45px;
+            width: auto;
+
+            @media @tabletSM {
+                max-height: 30px;
+            }
+        }
+    }
+
+    &__hamburger {
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: none;
+        flex-shrink: 0;
+        padding: 4px;
+
+        span {
+            background: @white;
+            border-radius: 2px;
+            display: block;
+            height: 2px;
+            margin: 5px 0;
+            .transition(all 0.3s ease);
+            width: 24px;
+        }
+
+        @media @tabletSM {
+            display: block;
+        }
+    }
+
+    &__user {
+        align-items: center;
+        display: flex;
+        justify-content: flex-end;
+
+        &__name {
+            color: @white;
+            font-size: 14px;
+            margin-right: 20px;
+
+            @media @tabletSM {
+                font-size: 12px;
+                margin-right: 10px;
+            }
+        }
+
+        &__logout {
+            font-size: 13px;
+            padding: 8px 20px;
+
+            @media @tabletSM {
+                font-size: 11px;
+                padding: 6px 12px;
+            }
+        }
+    }
+}
