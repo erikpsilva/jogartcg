@@ -101,9 +101,9 @@ export function GameTablePage() {
         <div className="board-ornament board-ornament--top" />
         <div className="opponent-hand" aria-label="Mão do oponente">{Array.from({ length: 5 }, (_, index) => <CardFace key={index} className={`opponent-hand__card opponent-hand__card--${index + 1}`} />)}</div>
         <div className="opponent-zone">
-          <div className="deck-stack deck-stack--opponent"><CardFace /><i>32</i></div>
           <div className="field-row field-row--opponent">{opponentField.map((card) => <CardFace card={card} key={card.id} onClick={() => inspectCard(card, 'opponent-field')} />)}</div>
         </div>
+        <div className="deck-stack deck-stack--opponent"><CardFace /><i>32</i></div>
         <div className="ink-zone ink-zone--opponent"><div>{Array.from({ length: totalOpponentInk }, (_, index) => <CardFace key={index} exhausted={index >= totalOpponentInk - opponentInkUsed} />)}</div></div>
         <button className="discard-board-pile discard-board-pile--opponent" type="button" onClick={() => openDiscard('opponent')} aria-label={`Abrir descarte do oponente com ${opponentDiscardPile.length} cartas`}>
           {topOpponentDiscard ? <img src={topOpponentDiscard.image.thumbnail || topOpponentDiscard.image.full || ''} alt="" /> : <span>Vazia</span>}
@@ -112,8 +112,8 @@ export function GameTablePage() {
         <div className="board-divider"><span>CAMPO DE DESAFIO</span></div>
         <div className="player-zone">
           <div className="field-row">{playerField.map((card) => <CardFace card={card} key={card.id} onClick={() => inspectCard(card, 'player-field')} />)}</div>
-          <div className="deck-stack"><CardFace /><i>28</i></div>
         </div>
+        <div className="deck-stack deck-stack--player"><CardFace /><i>28</i></div>
         <div className="ink-zone ink-zone--player"><div>{Array.from({ length: totalPlayerInk }, (_, index) => <CardFace key={index} exhausted={index < playerInkUsed} onClick={() => setPlayerInkUsed(index < playerInkUsed ? index : index + 1)} />)}</div></div>
         <button className="discard-board-pile discard-board-pile--player" type="button" onClick={() => openDiscard('player')} aria-label={`Abrir pilha de descarte com ${discardPile.length} cartas`}>
           {topDiscard ? <img src={topDiscard.image.thumbnail || topDiscard.image.full || ''} alt="" /> : <span>Vazia</span>}
