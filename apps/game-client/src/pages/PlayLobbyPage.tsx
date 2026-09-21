@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { compileCardRules } from '@jogartcg/game-core';
 import { useAuth } from '../auth/AuthContext';
@@ -33,7 +33,17 @@ export function PlayLobbyPage() {
   const [error, setError] = useState('');
   const [mode, setMode] = useState(false);
   const [training, setTraining] = useState(false);
+  const botSetupRef = useRef<HTMLElement>(null);
   const hasMatch = user ? Boolean(loadBotMatch(user.id)) : false;
+
+  function prepareBotMatch() {
+    setMode(true);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      if (window.matchMedia('(max-width: 760px)').matches) {
+        botSetupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }));
+  }
 
   useEffect(() => {
     let alive = true;
@@ -79,12 +89,12 @@ export function PlayLobbyPage() {
       {hasMatch && <Link className="button button--ghost" to="/jogar/bot">Continuar treino</Link>}
     </header>
     <div className="play-modes">
-      <button className={`play-mode ${mode ? 'play-mode--active' : ''}`} onClick={() => setMode(true)}><span aria-hidden="true">◇</span><strong>Contra o bot</strong><p>Escolha os dois decks. Tinta, combate e efeitos são resolvidos durante a partida.</p><b>Preparar partida →</b></button>
+      <button className={`play-mode ${mode ? 'play-mode--active' : ''}`} onClick={prepareBotMatch}><span aria-hidden="true">◇</span><strong>Contra o bot</strong><p>Escolha os dois decks. Tinta, combate e efeitos são resolvidos durante a partida.</p><b>Preparar partida →</b></button>
       <div className="play-mode play-mode--soon"><span aria-hidden="true">＋</span><strong>Criar sala</strong><p>Convide outro jogador para a sua mesa.</p><b>Em breve</b></div>
       <div className="play-mode play-mode--soon"><span aria-hidden="true">↪</span><strong>Entrar em uma sala</strong><p>Encontre uma partida com um código de convite.</p><b>Em breve</b></div>
     </div>
     {error && <div className="feedback feedback--error" role="alert">{error}</div>}
-    {mode && <section className="bot-setup" aria-label="Preparar partida contra o bot">
+    {mode && <section className="bot-setup" ref={botSetupRef} aria-label="Preparar partida contra o bot">
       <div className="bot-setup__heading"><h2>Você escolhe os dois lados.</h2><p>O bot usa um dos seus decks salvos. Você pode escolher a mesma lista para os dois.</p></div>
       <div className="bot-setup__actions"><button className="button button--ghost" disabled={training} onClick={() => void quickTraining()}>{training ? 'Preparando cartas…' : 'Testar com duas listas prontas'}</button><span>Treino de 60 cartas com habilidades já disponíveis.</span></div>
       {loading ? <p role="status">Carregando seus decks…</p> : !decks.length ? <p>Você ainda não possui decks. <Link to="/decks/novo">Monte e salve seu primeiro deck.</Link></p> : <>

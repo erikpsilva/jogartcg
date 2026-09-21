@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
 import { useSiteSettings } from '../settings/SiteSettingsContext';
+import { useInstallApp } from '../pwa/InstallContext';
 
 export function AppFooter() {
   const { playEnabled } = useSiteSettings();
+  const { showInstallSuggestion } = useInstallApp();
   return (
     <footer className="site-footer">
       <div className="site-footer__grid">
@@ -17,7 +19,7 @@ export function AppFooter() {
           <strong>Plataforma</strong>
           <Link to="/cartas">Catálogo</Link>
           <Link to="/decks">Montar deck</Link>
-          {playEnabled && <Link to="/jogar">Mesa de jogo</Link>}
+          {playEnabled && <Link to="/jogar" onClick={showInstallSuggestion}>Mesa de jogo</Link>}
         </div>
 
         <div>

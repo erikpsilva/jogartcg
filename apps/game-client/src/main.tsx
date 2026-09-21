@@ -9,13 +9,14 @@ import './styles/app.less';
 import './styles/bot-game.less';
 import { AuthProvider } from './auth/AuthContext';
 import { SiteSettingsProvider } from './settings/SiteSettingsContext';
+import { InstallProvider } from './pwa/InstallContext';
 
 registerSW({ immediate: true });
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HashRouter>
-      <AuthProvider><SiteSettingsProvider><App /></SiteSettingsProvider></AuthProvider>
+      <InstallProvider><AuthProvider><SiteSettingsProvider><App /></SiteSettingsProvider></AuthProvider></InstallProvider>
     </HashRouter>
   </StrictMode>
 );
