@@ -271,7 +271,7 @@ function handleDeckRoutes(PDO $pdo, array $segments, string $method): void
     if (($segments[1] ?? '') !== 'decks') return;
     header('Cache-Control: no-store'); $third = $segments[2] ?? ''; $fourth = $segments[3] ?? '';
     if ($third === 'formats' && $method === 'GET') respond(['success' => true, 'data' => array_values(deckFormats()), 'rules_updated_at' => '2026-07-14']);
-    $userId = requireUserId();
+    $userId = requireUserId($pdo);
     if ($third === 'import' && $method === 'POST') {
         requireCsrf(); $payload = readRequestPayload();
         try { $items = !empty($payload['url']) ? importDreambornUrl(trim((string) $payload['url'])) : importItemsFromContent((string) ($payload['content'] ?? '')); respond(['success' => true, 'data' => resolveImportItems($pdo, $items)]); }

@@ -12,6 +12,10 @@ RewriteCond %{HTTP_HOST} ^jogartcg\.com\.br$ [NC]
 RewriteRule ^ https://www.jogartcg.com.br%{REQUEST_URI} [R=301,L,NE]
 
 RewriteRule ^config/ - [F,L]
+RewriteRule ^(?:database|tests|docs)/ - [F,L]
+RewriteRule ^admin/includes/ - [F,L]
+RewriteRule ^admin/pages/.*\.php$ - [F,L]
+RewriteRule ^admin/?$ admin/index.php [QSA,L]
 
 # Encaminha as rotas REST para o controlador da API.
 RewriteRule ^api(?:/.*)?$ api/index.php [QSA,L]
@@ -20,5 +24,7 @@ RewriteRule ^api(?:/.*)?$ api/index.php [QSA,L]
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
+
+RewriteRule ^admin/ admin/index.php [QSA,L]
 
 RewriteRule ^(.*)$ index.php?url=$1 [QSA,L]

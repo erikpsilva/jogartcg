@@ -20,35 +20,36 @@ if (!empty($_SESSION['usuario'])) {
 <!-- BANNER INTRODUTÓRIO -->
 <section class="adminLogin">
     <div class="adminLogin__content">
-        <div class="formGroup">
+        <form class="formGroup" id="adminLoginForm" action="<?= ADMIN_BASE_URL ?>/services/login.php" method="post" data-redirect="<?= ADMIN_BASE_URL ?>/inicio">
             <div class="row">
 
                 <div class="col-md-12">
-                    <img class="adminLogin__content__logo" src="<?= ADMIN_BASE_URL ?>/images/logo.png" alt="logo" />
+                    <img class="adminLogin__content__logo" src="<?= BASE_URL ?>/client/brand/logo-jogar-tcg.png" alt="Jogar TCG" />
                 </div>
 
                 <div class="col-md-12 formGroup__divisor">
-                    <h3>Área de <span>acesso</span></h3>
+                    <span class="adminEyebrow">Administração</span><h1>Bem-vindo de volta.</h1><p class="adminLogin__intro">Entre para gerenciar a plataforma.</p><div class="formAlert formAlert--error" id="loginAlert" role="alert" hidden></div>
                 </div>
                 <div class="col-md-12">
                     <div class="formGroup__item">
                         <label for="loginEmail">E-mail</label>
-                        <input class="input" type="email" name="loginEmail" id="loginEmail" autocomplete="username" placeholder="Digite seu e-mail" />
+                        <input class="input" type="email" name="email" id="loginEmail" autocomplete="username" placeholder="Digite seu e-mail" required />
                     </div>
                 </div>
 
                 <div class="col-md-12">
                     <div class="formGroup__item">
                         <label for="loginPassword">Senha</label>
-                        <input class="input" type="password" name="loginPassword" id="loginPassword" autocomplete="current-password" placeholder="Digite sua senha" />
+                        <input class="input" type="password" name="senha" id="loginPassword" autocomplete="current-password" placeholder="Digite sua senha" required />
                     </div>
                 </div>
 
                 <div class="col-md-12">
-                    <button class="btn btn--primary" id="enviarLogin">Enviar</button>
+                    <button class="btn btn--primary" id="enviarLogin" type="submit">Entrar no painel</button>
                 </div>
             </div>
-        </div>
+        </form>
+        <a class="adminLogin__back" href="<?= BASE_URL ?>/client/#/cartas">← Voltar ao site</a>
     </div>
 </section>
 

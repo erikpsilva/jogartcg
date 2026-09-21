@@ -1,9 +1,11 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import { useSiteSettings } from '../settings/SiteSettingsContext';
 
 export function AppHeader() {
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
+  const { playEnabled } = useSiteSettings();
 
   async function handleLogout() {
     try { await logout(); } finally { navigate('/cartas'); }
@@ -14,7 +16,7 @@ export function AppHeader() {
       <div className="site-header__inner">
         <NavLink className="brand" to="/cartas" aria-label="Jogar TCG — catálogo"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></NavLink>
         <nav className="site-nav" aria-label="Navegação principal">
-          <NavLink to="/cartas">Cartas</NavLink><NavLink to="/meus-decks">Meus decks</NavLink><NavLink to="/jogar">Jogar</NavLink>
+          <NavLink to="/cartas">Cartas</NavLink><NavLink to="/meus-decks">Meus decks</NavLink>{playEnabled && <NavLink to="/jogar">Jogar</NavLink>}
         </nav>
         <div className="site-header__actions">
           {!loading && user ? (

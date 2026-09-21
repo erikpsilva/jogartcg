@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { BattleOrientationGate, useBattleOrientationBlocked } from '../components/BattleOrientationGate';
 import { getCard, getCards, type CardDetail, type CatalogCard } from '../services/catalog-api';
 
 type ZoneCard = CatalogCard & { exhausted?: boolean; facedown?: boolean };
@@ -20,6 +21,7 @@ function CardFace({ card, className = '', exhausted = false, onClick }: { card?:
 }
 
 export function GameTablePage() {
+  const orientationBlocked = useBattleOrientationBlocked();
   const [cards, setCards] = useState<CatalogCard[]>([]);
   const [selected, setSelected] = useState<ZoneCard | null>(null);
   const [selectedZone, setSelectedZone] = useState<CardZone>('hand');
@@ -84,13 +86,10 @@ export function GameTablePage() {
     setShowDiscard(true);
   };
 
+  if (orientationBlocked) return <BattleOrientationGate />;
+
   return (
     <div className="game-table-page">
-      <div className="rotate-device-gate" role="dialog" aria-label="Gire o celular para jogar">
-        <div className="rotate-device-gate__phone"><span /></div>
-        <strong>Gire o celular</strong>
-        <p>A mesa de jogo funciona na horizontal para manter o tabuleiro, sua mão e o painel da partida visíveis.</p>
-      </div>
       <div className="game-table-topbar">
         <Link className="game-table-brand" to="/cartas"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></Link>
         <div className="game-table-round"><span>Partida de teste</span><strong>{playerTurn ? 'Seu turno' : 'Turno do oponente'}</strong></div>

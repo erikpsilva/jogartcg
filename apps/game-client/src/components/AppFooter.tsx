@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
+import { useSiteSettings } from '../settings/SiteSettingsContext';
 
 export function AppFooter() {
+  const { playEnabled } = useSiteSettings();
   return (
     <footer className="site-footer">
       <div className="site-footer__grid">
@@ -15,7 +17,7 @@ export function AppFooter() {
           <strong>Plataforma</strong>
           <Link to="/cartas">Catálogo</Link>
           <Link to="/decks">Montar deck</Link>
-          <Link to="/jogar">Mesa de jogo</Link>
+          {playEnabled && <Link to="/jogar">Mesa de jogo</Link>}
         </div>
 
         <div>

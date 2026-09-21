@@ -1,0 +1,204 @@
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { activeDecisionPlayer, applyAction, availableInk, chooseBotAction, getLegalActions, getStats, type CardInstance, type GameAction, type PlayerId } from '@jogartcg/game-core';
+import { useAuth } from '../auth/AuthContext';
+import { BattleOrientationGate, useBattleOrientationBlocked } from '../components/BattleOrientationGate';
+import { loadBotMatch, saveBotMatch, type BotMatch, type DisplayGameCard } from '../game/bot-session';
+
+const backImage = './brand/lor-card-back.webp';
+const displayCard = (entry: CardInstance) => entry.card as DisplayGameCard;
+const title = (entry: CardInstance) => displayCard(entry).displayName || entry.card.name;
+
+function Dialog({ title: heading, children, close }: { title: string; children: ReactNode; close?: () => void }) {
+  const panel = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const previous = document.activeElement as HTMLElement | null;
+    panel.current?.focus();
+    return () => previous?.focus();
+  }, []);
+  return <div className="match-dialog" onMouseDown={(event) => { if (event.target === event.currentTarget) close?.(); }}>
+    <div className="match-dialog__panel" ref={panel} role="dialog" aria-modal="true" aria-label={heading} tabIndex={-1} onKeyDown={(event) => {
+      if (event.key === 'Escape') { event.stopPropagation(); close?.(); }
+      if (event.key !== 'Tab') return;
+      const elements = [...(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input, select, [tabindex="0"]') ?? [])];
+      const first = elements[0]; const last = elements[elements.length - 1];
+      if (!first) { event.preventDefault(); return; }
+      if (event.shiftKey && (document.activeElement === first || document.activeElement === panel.current)) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && (document.activeElement === last || document.activeElement === panel.current)) { event.preventDefault(); first.focus(); }
+    }}>
+      <h2>{heading}</h2>{close && <button className="match-dialog__close" onClick={close} aria-label="Fechar">×</button>}{children}
+    </div>
+  </div>;
+}
+
+function MatchCard({ entry, hidden = false, exhausted = false, className = '', style, legal, onClick }: { entry?: CardInstance; hidden?: boolean; exhausted?: boolean; className?: string; style?: CSSProperties; legal?: boolean; onClick?: () => void }) {
+  const faceDown = hidden || !entry;
+  return <button type="button" style={style} className={`game-card ${faceDown ? 'game-card--back' : ''} ${entry?.exerted || exhausted ? 'game-card--exhausted' : ''} ${legal ? 'game-card--legal' : ''} ${className}`} onClick={onClick} disabled={!onClick} aria-label={faceDown ? `Carta virada para baixo${exhausted ? ', utilizada' : ''}` : title(entry!)}>
+    <img src={faceDown ? backImage : entry!.card.image} alt="" />
+    {!faceDown && entry && <><span>{entry.card.cost}</span>{entry.damage > 0 && <span className="card-damage" title="Dano recebido">{entry.damage}</span>}{entry.drying && entry.card.type === 'Character' && <span className="card-state">Secando</span>}{entry.card.type !== 'Character' && <span className="card-state">{entry.card.type === 'Item' ? 'Item' : entry.card.type === 'Action' ? 'Ação' : 'Local'}</span>}{entry.location && <span className="card-location" title="Em um local">⌂</span>}</>}
+  </button>;
+}
+
+function fanStyle(index: number, count: number, opponent: boolean): CSSProperties {
+  const offset = index - (count - 1) / 2;
+  const spacing = Math.min(opponent ? 25 : 60, 340 / Math.max(1, count - 1));
+  return { '--fan-x': `calc(-50% + ${offset * spacing}px)`, '--fan-y': `${-Math.abs(offset) * (opponent ? 4 : -2)}px`, '--fan-r': `${offset * (opponent ? -5 : 4)}deg`, '--fan-z': `${count - Math.round(Math.abs(offset))}` } as CSSProperties;
+}
+
+function actionInvolves(action: GameAction, iid: string): boolean {
+  return Object.entries(action).some(([key, value]) => key !== 'label' && (value === iid || (Array.isArray(value) && value.includes(iid))));
+}
+
+export function BotGamePage() {
+  const { user } = useAuth();
+  const orientationBlocked = useBattleOrientationBlocked();
+  const navigate = useNavigate();
+  const [match, setMatch] = useState<BotMatch | null>(() => user ? loadBotMatch(user.id) : null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [pile, setPile] = useState<PlayerId | null>(null);
+  const [showLog, setShowLog] = useState(false);
+  const [exitOpen, setExitOpen] = useState(false);
+  const [error, setError] = useState('');
+  const [botError, setBotError] = useState('');
+  const [choiceIds, setChoiceIds] = useState<string[]>([]);
+  const [targetActions, setTargetActions] = useState<GameAction[] | null>(null);
+  const state = match?.state;
+  const decisionPlayer = state ? activeDecisionPlayer(state) : null;
+  const legal = useMemo(() => state ? getLegalActions(state, 'player') : [], [state]);
+
+  useEffect(() => { setChoiceIds([]); }, [state?.pending?.id]);
+  useEffect(() => {
+    if (match && user) {
+      try { saveBotMatch(user.id, match); }
+      catch { setError('O navegador não conseguiu guardar este treino. Mantenha a página aberta para continuar.'); }
+    }
+  }, [match, user]);
+  useEffect(() => {
+    if (!state || orientationBlocked || decisionPlayer !== 'bot' || state.phase === 'finished' || botError) return;
+    const timer = window.setTimeout(() => {
+      try {
+        const action = chooseBotAction(state);
+        const next = applyAction(state, action);
+        setMatch((current) => current && current.state === state ? { ...current, state: next } : current);
+      } catch (reason) { setBotError(reason instanceof Error ? reason.message : 'O bot não conseguiu concluir a jogada.'); }
+    }, 650);
+    return () => window.clearTimeout(timer);
+  }, [state, decisionPlayer, botError, orientationBlocked]);
+
+  if (!match || !state) return <div className="page-container play-lobby"><h1>Prepare sua partida.</h1><p>Escolha os dois decks para começar o treino.</p><Link className="button button--primary" to="/jogar">Escolher decks</Link></div>;
+  if (orientationBlocked) return <BattleOrientationGate />;
+  const player = state.players.player;
+  const bot = state.players.bot;
+  const visibleCards = [...player.hand, ...player.field, ...player.discard, ...bot.field, ...bot.discard];
+  const selected = visibleCards.find((card) => card.iid === selectedId);
+  const selectedActions = selected ? legal.filter((action) => actionInvolves(action, selected.iid)) : [];
+  const passAction = legal.find((action) => ['end-turn', 'endTurn', 'pass'].includes(action.type));
+  const concedeAction = legal.find((action) => action.type === 'concede');
+  const pending = state.pending?.player === 'player' ? state.pending : null;
+
+  function dispatch(action: GameAction) {
+    if (!match) return;
+    try {
+      const next = applyAction(match.state, action);
+      setMatch({ ...match, state: next }); setError(''); setSelectedId(null); setTargetActions(null);
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'Essa ação não está disponível.'); }
+  }
+  function chooseOption(id: string) {
+    if (!pending) return;
+    setError('');
+    setChoiceIds((values) => values.includes(id) ? values.filter((value) => value !== id) : pending.max === 1 ? [id] : values.length < pending.max ? [...values, id] : values);
+  }
+  /**
+   * Rótulo curto para os botões do diálogo da carta. O motor gera "Tinteiro: Ariel - ..."
+   * (usado também no histórico), mas aqui a carta já está aberta, então repetir o nome
+   * dela só polui. Mantemos apenas o nome da *outra* carta envolvida, quando houver.
+   */
+  function shortLabel(action: GameAction): string {
+    const nameOf = (iid: string) => { const entry = visibleCards.find((card) => card.iid === iid); return entry ? title(entry) : ''; };
+    const isSelected = (iid: string) => iid === selected?.iid;
+    switch (action.type) {
+      case 'ink': return 'Tinteiro';
+      case 'play': return action.exerted ? 'Jogar exaurido' : 'Jogar';
+      case 'quest': return 'Explorar';
+      case 'boost': return 'Impulsionar';
+      case 'challenge': return isSelected(action.iid) ? `Desafiar ${nameOf(action.target)}`.trim() : `Desafiar com ${nameOf(action.iid)}`.trim();
+      case 'move': return `Mover para ${nameOf(action.location)}`.trim();
+      case 'shift': return isSelected(action.iid) ? `Transformar sobre ${nameOf(action.onto)}`.trim() : `Transformar com ${nameOf(action.iid)}`.trim();
+      case 'sing':
+        if (!action.singers.length) return 'Cantar juntos';
+        return isSelected(action.iid) ? `Cantar com ${action.singers.map(nameOf).join(' + ')}`.trim() : `Cantar ${nameOf(action.iid)}`.trim();
+      case 'activate': return `Habilidade: ${(action.label ?? '').split(': ').pop()}`;
+      default: return action.label ?? '';
+    }
+  }
+  function actionButtons() {
+    if (!selected) return null;
+    const groups = new Map<string, GameAction[]>();
+    for (const action of selectedActions) groups.set(action.type, [...(groups.get(action.type) ?? []), action]);
+    return [...groups].map(([kind, actions]) => <button key={kind} onClick={() => actions.length === 1 ? dispatch(actions[0]) : setTargetActions(actions)}>{actions.length === 1 ? shortLabel(actions[0]) : kind === 'challenge' ? 'Desafiar' : kind === 'move' ? 'Mover' : kind === 'play' ? 'Jogar' : kind === 'sing' ? 'Cantar' : kind === 'shift' ? 'Transformar' : 'Habilidade'}</button>);
+  }
+  function renderField(owner: PlayerId) {
+    const field = state!.players[owner].field;
+    return <div className={`field-row ${owner === 'bot' ? 'field-row--opponent' : ''}`}>{field.length ? field.map((entry) => <MatchCard key={entry.iid} entry={entry} legal={owner === 'player' && legal.some((action) => actionInvolves(action, entry.iid))} onClick={() => setSelectedId(entry.iid)} />) : <span className="bot-table__empty">{owner === 'player' ? 'Seu campo' : 'Campo do bot'}</span>}</div>;
+  }
+  function discard(owner: PlayerId) {
+    const entries = state!.players[owner].discard;
+    return <button className={`discard-board-pile discard-board-pile--${owner === 'bot' ? 'opponent' : 'player'}`} onClick={() => setPile(owner)} aria-label={`Consultar descarte ${owner === 'bot' ? 'do bot' : 'seu'}: ${entries.length} cartas`}>
+      {entries.length ? <img src={entries[entries.length - 1].card.image} alt="" /> : <span aria-hidden="true">—</span>}<b>{entries.length}</b><small>Descarte</small>
+    </button>;
+  }
+  const statusText = state.phase === 'finished' ? 'Partida encerrada' : decisionPlayer === 'bot' ? 'Bot pensando…' : pending ? 'Sua escolha' : 'Seu turno';
+
+  return <div className="game-table-page bot-table">
+    <header className="game-table-topbar"><Link className="game-table-brand" to="/jogar"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></Link><div className="game-table-round"><span>Turno {state.turn}</span><strong aria-live="polite">{statusText}</strong></div><div className="game-table-topactions"><button onClick={() => setShowLog(true)} aria-label="Histórico da partida">☷</button><button onClick={() => setExitOpen(true)} aria-label="Sair da mesa">↪ Sair</button></div></header>
+    <main className="game-board" aria-label="Mesa contra o bot">
+      <div className="board-ornament board-ornament--top" />
+      <div className="opponent-hand" aria-label={`Mão do bot: ${bot.hand.length} cartas`}>{bot.hand.map((entry, index) => <MatchCard key={entry.iid} hidden style={fanStyle(index, bot.hand.length, true)} />)}</div>
+      <div className="opponent-zone">{renderField('bot')}</div>
+      <div className="deck-stack deck-stack--opponent" aria-label={`Deck do bot: ${bot.deck.length} cartas`}><MatchCard hidden /><i>{bot.deck.length}</i></div>
+      <div className="ink-zone ink-zone--opponent" aria-label={`Tinta do bot: ${availableInk(state, 'bot')} de ${bot.inkwell.length}`}><div>{[...bot.inkwell].reverse().map((entry) => <MatchCard key={entry.iid} hidden exhausted={entry.exerted} />)}</div></div>
+      {discard('bot')}
+      <div className="board-divider"><span>{decisionPlayer === 'bot' ? 'O BOT ESTÁ JOGANDO' : player.inkwell.length === 0 ? 'COLOQUE UMA CARTA NO TINTEIRO' : 'ESCOLHA UMA CARTA PARA AGIR'}</span></div>
+      <div className="player-zone">{renderField('player')}</div>
+      <div className="deck-stack deck-stack--player" aria-label={`Seu deck: ${player.deck.length} cartas`}><MatchCard hidden /><i>{player.deck.length}</i></div>
+      <div className="ink-zone ink-zone--player" aria-label={`Sua tinta: ${availableInk(state, 'player')} de ${player.inkwell.length}`}><div>{player.inkwell.map((entry) => <MatchCard key={entry.iid} hidden exhausted={entry.exerted} />)}</div></div>
+      {discard('player')}
+      <div className="player-hand" aria-label={`Sua mão: ${player.hand.length} cartas`}>{player.hand.map((entry, index) => <MatchCard key={entry.iid} entry={entry} style={fanStyle(index, player.hand.length, false)} onClick={() => setSelectedId(entry.iid)} />)}</div>
+    </main>
+    <aside className="game-table-right" aria-label="Contadores da partida">
+      <section className="table-player-card"><span className="table-avatar table-avatar--opponent">BOT</span><div><strong>Bot</strong><span className={decisionPlayer === 'bot' ? 'online' : ''}>{decisionPlayer === 'bot' ? 'Jogando' : 'Sua vez'}</span></div></section>
+      <div className="resource-block"><div className="ink-gem"><b>{availableInk(state, 'bot')}</b></div><span>Tinta do bot / {bot.inkwell.length}</span></div>
+      <div className="right-deck"><MatchCard hidden /><i>{bot.deck.length}</i><span>Deck do bot</span></div>
+      <div className="lore-counter"><b>{bot.lore}</b><span>Lore do bot / 20</span></div>
+      <button className="pass-turn" disabled={!passAction} onClick={() => passAction && dispatch(passAction)}>Passar turno</button>
+      <div className="lore-counter lore-counter--player"><b>{player.lore}</b><span>Seu lore / 20</span></div>
+      <div className="resource-block"><div className="ink-gem"><b>{availableInk(state, 'player')}</b></div><span>Sua tinta / {player.inkwell.length}</span></div>
+      <div className="right-deck"><MatchCard hidden /><i>{player.deck.length}</i><span>Seu deck</span></div>
+      <button className="discard-list-button" onClick={() => setPile('player')}>Descartes <b>{player.discard.length}</b></button>
+    </aside>
+
+    {selected && !pending && !targetActions && <Dialog title={title(selected)} close={() => setSelectedId(null)}><div className="match-card-detail"><img src={selected.card.image} alt={title(selected)} /><div>
+      <p className="match-card-detail__meta">{displayCard(selected).fullName || selected.card.name} · Custo {getStats(state, selected.iid).cost}</p>
+      <p>Força {getStats(state, selected.iid).strength} · Vontade {getStats(state, selected.iid).willpower} · Lore {getStats(state, selected.iid).lore}{selected.damage > 0 ? ` · Dano ${selected.damage}` : ''}</p>
+      <p className="match-card-detail__text">{displayCard(selected).textPt || selected.card.text || 'Esta carta não possui habilidades.'}</p>
+      {selected.card.text && <details><summary>Texto original</summary><p className="match-card-detail__text">{selected.card.text}</p></details>}
+      <div className="match-actions">{actionButtons()}</div>
+      {!selectedActions.length && <p>{decisionPlayer !== 'player' ? 'Aguarde a sua vez.' : selected.exerted ? 'Esta carta já está virada.' : selected.drying ? 'Este personagem está secando. Ele poderá agir no seu próximo turno.' : player.hand.some((card) => card.iid === selected.iid) ? 'Sem ação disponível: confira a tinta e o limite de uma carta no tinteiro por turno.' : 'Nenhuma ação está disponível para esta carta agora.'}</p>}
+    </div></div></Dialog>}
+    {targetActions && <Dialog title="Escolha como resolver a jogada" close={() => setTargetActions(null)}><div className="match-choice-grid">{targetActions.map((action, index) => {
+      const targetId = 'target' in action ? action.target : 'location' in action ? action.location : 'onto' in action ? action.onto : null;
+      const target = visibleCards.find((card) => card.iid === targetId);
+      return <button className="match-choice" key={index} onClick={() => dispatch(action)}>{target && <img src={target.card.image} alt="" />}<span>{shortLabel(action)}</span></button>;
+    })}</div></Dialog>}
+    {pending && <Dialog key={pending.id} title={pending.label}><p>{pending.min === 0 ? 'Você pode confirmar sem selecionar nenhuma opção.' : `Selecione ${pending.min === pending.max ? pending.min : `${pending.min} a ${pending.max}`} opção(ões).`}</p><div className="match-choice-grid">{pending.options.map((option) => {
+      const entry = visibleCards.find((card) => card.iid === option.iid || card.iid === option.id);
+      return <button className="match-choice" key={option.id} aria-pressed={choiceIds.includes(option.id)} onClick={() => chooseOption(option.id)}>{entry && <img src={entry.card.image} alt="" />}<span>{option.label}</span></button>;
+    })}</div><button className="match-choice-confirm" disabled={choiceIds.length < pending.min || choiceIds.length > pending.max} onClick={() => dispatch({ type: 'choose', player: 'player', optionIds: choiceIds })}>{choiceIds.length ? `Confirmar (${choiceIds.length})` : state.phase === 'mulligan' ? 'Manter minha mão' : pending.min > 0 ? 'Confirmar escolha' : 'Não usar / continuar'}</button></Dialog>}
+    {pile && <Dialog title={pile === 'player' ? 'Seu descarte' : 'Descarte do bot'} close={() => setPile(null)}><div className="match-pile-list">{state.players[pile].discard.map((entry) => <button key={entry.iid} onClick={() => { setSelectedId(entry.iid); setPile(null); }}><img src={entry.card.image} alt="" />{title(entry)}</button>)}</div>{!state.players[pile].discard.length && <p>Não há cartas neste descarte.</p>}<p>Cartas só podem voltar para a mão por um efeito que permita recuperá-las.</p></Dialog>}
+    {showLog && <Dialog title="Histórico da partida" close={() => setShowLog(false)}><p>{match.deckNames.player} × {match.deckNames.bot}</p><ol className="match-log">{state.log.map((entry, index) => <li key={index}>{typeof entry === 'string' ? entry : JSON.stringify(entry)}</li>)}</ol></Dialog>}
+    {exitOpen && <Dialog title="Sair da mesa" close={() => setExitOpen(false)}><p>Você pode voltar à arena e retomar este treino depois.</p><div className="match-actions"><button onClick={() => navigate('/jogar')}>Guardar e sair</button>{concedeAction && <button onClick={() => { dispatch(concedeAction); setExitOpen(false); }}>Desistir da partida</button>}<button onClick={() => setExitOpen(false)}>Continuar jogando</button></div></Dialog>}
+    {botError && <Dialog title="O bot encontrou um problema"><p>{botError}</p><div className="match-actions"><button onClick={() => setBotError('')}>Tentar a jogada novamente</button><button onClick={() => navigate('/jogar')}>Voltar à arena</button></div></Dialog>}
+    {error && <div className="bot-table__error" role="alert"><span>{error}</span><button onClick={() => setError('')} aria-label="Fechar aviso">×</button></div>}
+    {state.phase === 'finished' && !exitOpen && !showLog && <Dialog title={state.winner === 'player' ? 'Você venceu!' : state.winner === 'bot' ? 'O bot venceu' : 'Partida encerrada'}><p>{state.finishReason === 'lore' ? 'A meta de 20 pontos de lore foi alcançada.' : state.finishReason === 'emptyDeck' ? 'Um jogador terminou o próprio turno com o deck vazio.' : state.finishReason === 'concede' ? 'A partida terminou por desistência.' : 'A partida chegou ao fim.'}</p><p>Seu lore: {player.lore} · Lore do bot: {bot.lore}</p><div className="match-actions"><button onClick={() => navigate('/jogar')}>Preparar nova partida</button><button onClick={() => setShowLog(true)}>Ver histórico</button></div></Dialog>}
+  </div>;
+}

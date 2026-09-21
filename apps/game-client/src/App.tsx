@@ -11,6 +11,9 @@ import { RegistrationPage } from './pages/RegistrationPage';
 import { MyDecksPage } from './pages/MyDecksPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { GameTablePage } from './pages/GameTablePage';
+import { PlayLobbyPage } from './pages/PlayLobbyPage';
+import { BotGamePage } from './pages/BotGamePage';
+import { PlayAvailability, useSiteSettings } from './settings/SiteSettingsContext';
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, loading } = useAuth();
@@ -22,7 +25,8 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
 
 export function App() {
   const location = useLocation();
-  const isGameTable = location.pathname === '/jogar';
+  const { playEnabled, loading } = useSiteSettings();
+  const isGameTable = playEnabled && !loading && ['/jogar/bot', '/jogar/mesa-teste'].includes(location.pathname);
   return (
     <div className={`app-shell ${isGameTable ? 'app-shell--game' : ''}`}>
       {!isGameTable && <AppHeader />}
@@ -36,7 +40,9 @@ export function App() {
           <Route path="/decks" element={<Navigate to="/meus-decks" replace />} />
           <Route path="/decks/novo" element={<ProtectedRoute><DeckBuilderPage /></ProtectedRoute>} />
           <Route path="/decks/:deckId" element={<ProtectedRoute><DeckBuilderPage /></ProtectedRoute>} />
-          <Route path="/jogar" element={<ProtectedRoute><GameTablePage /></ProtectedRoute>} />
+          <Route path="/jogar" element={<PlayAvailability><ProtectedRoute><PlayLobbyPage /></ProtectedRoute></PlayAvailability>} />
+          <Route path="/jogar/bot" element={<PlayAvailability><ProtectedRoute><BotGamePage /></ProtectedRoute></PlayAvailability>} />
+          <Route path="/jogar/mesa-teste" element={<PlayAvailability><ProtectedRoute><GameTablePage /></ProtectedRoute></PlayAvailability>} />
           <Route path="/entrar" element={<LoginPage />} />
           <Route path="/cadastro" element={<RegistrationPage />} />
           <Route path="*" element={<Navigate to="/cartas" replace />} />

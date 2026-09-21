@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once dirname(__DIR__) . '/config/validation.php';
 require_once __DIR__ . '/session.php';
+require_once dirname(__DIR__) . '/config/profile_photos.php';
 
 function readRequestPayload(): array
 {
@@ -33,34 +34,15 @@ function duplicateFieldFromException(PDOException $exception): ?string
 
 function storeProfilePhoto(): ?string
 {
-    $file = $_FILES['photo'] ?? null;
-    if (!$file || ($file['error'] ?? UPLOAD_ERR_NO_FILE) === UPLOAD_ERR_NO_FILE) return null;
-    if (($file['error'] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
-        throw new InvalidArgumentException('Nao foi possivel receber a foto. Tente novamente.');
-    }
-    if ((int) ($file['size'] ?? 0) > 5 * 1024 * 1024) {
-        throw new InvalidArgumentException('A foto deve ter no maximo 5 MB.');
-    }
-    $mime = (new finfo(FILEINFO_MIME_TYPE))->file((string) $file['tmp_name']);
-    $extensions = ['image/jpeg' => 'jpg', 'image/png' => 'png'];
-    if (!isset($extensions[$mime])) throw new InvalidArgumentException('Use uma foto JPG ou PNG valida.');
-
-    $directory = dirname(__DIR__) . '/storage/uploads/avatars';
-    if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-        throw new RuntimeException('Nao foi possivel preparar o armazenamento da foto.');
-    }
-    $filename = bin2hex(random_bytes(18)) . '.' . $extensions[$mime];
-    if (!move_uploaded_file((string) $file['tmp_name'], $directory . '/' . $filename)) {
-        throw new RuntimeException('Nao foi possivel salvar a foto enviada.');
-    }
-    return 'storage/uploads/avatars/' . $filename;
+    return saveUploadedProfilePhoto($_FILES['photo'] ?? null);
 }
 
-function authenticateUser(int $userId): void
+function authenticateUser(int $userId, int $version = 1): void
 {
     startPlayerSession();
     session_regenerate_id(true);
     $_SESSION['user_id'] = $userId;
+    $_SESSION['player_version'] = $version;
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
@@ -101,7 +83,7 @@ function handleAuthRoutes(PDO $pdo, array $segments, string $method): void
     }
 
     if ($action === 'profile' && $method === 'GET') {
-        $userId = requireUserId();
+        $userId = requireUserId($pdo);
         $statement = $pdo->prepare('SELECT * FROM usuarios WHERE id = ? AND status = "ativo" LIMIT 1');
         $statement->execute([$userId]);
         $user = $statement->fetch();
@@ -110,7 +92,7 @@ function handleAuthRoutes(PDO $pdo, array $segments, string $method): void
     }
 
     if ($action === 'profile' && $method === 'POST') {
-        $userId = requireUserId();
+        $userId = requireUserId($pdo);
         requireCsrf();
         $statement = $pdo->prepare('SELECT * FROM usuarios WHERE id = ? AND status = "ativo" LIMIT 1');
         $statement->execute([$userId]);
@@ -136,7 +118,8 @@ function handleAuthRoutes(PDO $pdo, array $segments, string $method): void
             if ($passwordError !== null) $errors['newPassword'] = $passwordError;
             $confirmationError = validatePasswordConfirmation($newPassword, $payload['passwordConfirmation'] ?? null);
             if ($confirmationError !== null) $errors['passwordConfirmation'] = $confirmationError;
-        } elseif ((string) ($payload['currentPassword'] ?? '') !== '' || (string) ($payload['passwordConfirmation'] ?? '') !== '') {
+        } elseif ((string) ($payload['passwordConfirmation'] ?? '') !== '') {
+            // Senha atual sozinha e ignorada: navegadores auto-preenchem esse campo.
             $errors['newPassword'] = 'Informe a nova senha.';
         }
 
@@ -169,6 +152,7 @@ function handleAuthRoutes(PDO $pdo, array $segments, string $method): void
         if ($newPassword !== '') {
             $fields[] = 'senha_hash = :senha_hash';
             $params['senha_hash'] = password_hash($newPassword, PASSWORD_BCRYPT);
+            if (isset($currentUser['session_version'])) $fields[] = 'session_version = session_version + 1';
         }
         if ($newPhotoPath !== null) {
             $fields[] = 'foto_perfil = :foto_perfil';
@@ -179,17 +163,20 @@ function handleAuthRoutes(PDO $pdo, array $segments, string $method): void
             $update = $pdo->prepare('UPDATE usuarios SET ' . implode(', ', $fields) . ' WHERE id = :id');
             $update->execute($params);
         } catch (Throwable $exception) {
-            if ($newPhotoPath) @unlink(dirname(__DIR__) . '/' . $newPhotoPath);
+            if ($newPhotoPath) removeManagedProfilePhoto($newPhotoPath);
             error_log('[jogartcg] falha ao atualizar perfil: ' . $exception->getMessage());
             respond(['success' => false, 'error' => 'profile_update_failed', 'message' => 'Nao foi possivel salvar seus dados.'], 500);
         }
 
         if ($newPhotoPath && $currentUser['foto_perfil']) {
-            $oldPhoto = dirname(__DIR__) . '/' . ltrim((string) $currentUser['foto_perfil'], '/');
-            if (is_file($oldPhoto)) @unlink($oldPhoto);
+            removeManagedProfilePhoto($currentUser['foto_perfil']);
         }
         $statement->execute([$userId]);
         $updatedUser = $statement->fetch();
+        if ($newPassword !== '') {
+            $_SESSION['player_version'] = (int) ($updatedUser['session_version'] ?? 1);
+            session_regenerate_id(true);
+        }
         respond(['success' => true, 'message' => 'Seus dados foram atualizados.', 'data' => [
             'profile' => privateProfile($updatedUser), 'user' => publicUser($updatedUser),
         ]]);
@@ -206,14 +193,14 @@ function handleAuthRoutes(PDO $pdo, array $segments, string $method): void
             usleep(250000);
             respond(['success' => false, 'error' => 'invalid_credentials', 'message' => 'E-mail ou senha incorretos.'], 401);
         }
-        authenticateUser((int) $user['id']);
+        authenticateUser((int) $user['id'], (int) ($user['session_version'] ?? 1));
         respond(['success' => true, 'message' => 'Login realizado com sucesso.', 'data' => [
             'user' => publicUser($user), 'csrf_token' => csrfToken(),
         ]]);
     }
 
     if ($action === 'logout' && $method === 'POST') {
-        requireUserId();
+        requireUserId($pdo);
         requireCsrf();
         $_SESSION = [];
         if (ini_get('session.use_cookies')) {
@@ -262,7 +249,7 @@ function handleAuthRoutes(PDO $pdo, array $segments, string $method): void
                 'foto_perfil' => $photoPath,
             ]);
         } catch (PDOException $exception) {
-            if ($photoPath) @unlink(dirname(__DIR__) . '/' . $photoPath);
+            if ($photoPath) removeManagedProfilePhoto($photoPath);
             $field = duplicateFieldFromException($exception);
             if ($field) respond(['success' => false, 'error' => 'validation_failed', 'message' => 'Confira os campos destacados e tente novamente.', 'errors' => [$field => $field === 'email' ? 'Este e-mail ja esta cadastrado.' : 'Este CPF ja esta cadastrado.']], 422);
             error_log('[jogartcg] falha ao cadastrar: ' . $exception->getMessage());

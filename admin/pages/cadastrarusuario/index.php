@@ -6,7 +6,7 @@ if ($_SESSION['usuario']['nivel_acesso'] !== 'admin') {
 }
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <title>Jogar TCG - Admin - Cadastro de Usuários</title>
 <?php include ROOT . '/admin/includes/assets.php'; ?>
@@ -22,7 +22,7 @@ if ($_SESSION['usuario']['nivel_acesso'] !== 'admin') {
         <section class="userRegister">
             <div class="row">
                 <div class="col-md-12">
-                    <h2>Registar um <span>novo usuário</span></h2>
+                    <header class="adminPageHeading"><span class="adminEyebrow">Equipe administrativa</span><h1>Novo usuário<span>.</span></h1><p>Cadastre uma pessoa para administrar a plataforma.</p></header>
                 </div>
             </div>
             <div class="formGroup">
@@ -32,35 +32,35 @@ if ($_SESSION['usuario']['nivel_acesso'] !== 'admin') {
                     </div>
                     <div class="col-md-4">
                         <div class="formGroup__item">
-                            <label>Nome</label>
+                            <label for="userName">Nome</label>
                             <input class="input" type="text" name="userName" id="userName" placeholder="Qual o seu primeiro nome?" />
                             <span class="errorText">Digite um nome válido</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="formGroup__item">
-                            <label>Sobrenome</label>
+                            <label for="userLastName">Sobrenome</label>
                             <input class="input" type="text" name="userLastName" id="userLastName" placeholder="Qual o seu sobrenome?" />
                             <span class="errorText">Digite um sobrenome válido</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="formGroup__item">
-                            <label>CPF</label>
+                            <label for="userCpf">CPF</label>
                             <input class="input" type="text" name="userCpf" id="userCpf" placeholder="___.___.___.-__" />
                             <span class="errorText">Digite um CPF válido de 11 dígitos</span>
                         </div>
                     </div>
                     <div class="col-md-8">
                         <div class="formGroup__item">
-                            <label>E-mail</label>
+                            <label for="userEmail">E-mail</label>
                             <input class="input" type="text" name="userEmail" id="userEmail" placeholder="Qual o seu e-mail?" />
                             <span class="errorText">Digite um e-mail válido</span>
                         </div>
                     </div>
                     <div class="col-md-4">
                         <div class="formGroup__item">
-                            <label>Nivel de acesso</label>
+                            <label for="userLevelAccess">Nível de acesso</label>
                             <select class="input" type="text" name="userLevelAccess" id="userLevelAccess" placeholder="Nivél de acesso">
                                 <option value="admin">ADMIN</option>
                                 <option value="editor">EDITOR</option>
@@ -73,14 +73,14 @@ if ($_SESSION['usuario']['nivel_acesso'] !== 'admin') {
                     </div>
                     <div class="col-md-6">
                         <div class="formGroup__item">
-                            <label>Senha</label>
+                            <label for="userPassword">Senha</label>
                             <input class="input" type="password" name="userPassword" id="userPassword" placeholder="A senha deve conter de 6 a 20 dígitos" />
                             <span class="errorText">A senha deve conter de 6 a 20 dígitos</span>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="formGroup__item">
-                            <label>Confirmar senha</label>
+                            <label for="userConfirmPassword">Confirmar senha</label>
                             <input class="input" type="password" name="userConfirmPassword" id="userConfirmPassword" placeholder="Digite novamente sua senha" />
                             <span class="errorText">As senhas não são iguais</span>
                         </div>

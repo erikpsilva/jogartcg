@@ -1,10 +1,9 @@
 <?php
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once dirname(__DIR__) . '/includes/session.php';
 
 header('Content-Type: application/json');
+header('Cache-Control: no-store');
 
 require_once dirname(__FILE__, 3) . '/config/api_security.php';
 
@@ -18,8 +17,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 require_once dirname(__FILE__, 3) . '/config/database.php';
 
-$email = trim($_POST['email'] ?? '');
-$senha = trim($_POST['senha'] ?? '');
+$email = is_string($_POST['email'] ?? null) ? trim($_POST['email']) : '';
+$senha = is_string($_POST['senha'] ?? null) ? $_POST['senha'] : '';
 
 if (empty($email) || empty($senha)) {
     http_response_code(400);
@@ -46,6 +45,7 @@ if (!$usuario || !password_verify($senha, $usuario['senha'])) {
 }
 
 unset($usuario['senha']);
+session_regenerate_id(true);
 
 $_SESSION['usuario'] = $usuario;
 

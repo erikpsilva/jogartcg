@@ -11,7 +11,8 @@
 @import "modules/common.less";
 
 //fonts e icones do site
-@import url('https://fonts.googleapis.com/css?family=Montserrat:400,600,700,900');
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 400; font-display: swap; src: url('./fonts/montserrat-latin-400-normal.woff2') format('woff2'); }
+@font-face { font-family: Montserrat; font-style: normal; font-weight: 600; font-display: swap; src: url('./fonts/montserrat-latin-600-normal.woff2') format('woff2'); }
 
 //modules
 @import "../includes/header/header.less";
@@ -23,5 +24,7 @@
 @import "../pages/inicio/inicio.less";
 @import "../pages/meusdados/meusdados.less";
 @import "../pages/cadastrarusuario/cadastrarusuario.less";
+@import "modules/jogar-theme.less";
+@import "modules/site-users.less";
 
 

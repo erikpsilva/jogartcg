@@ -7,7 +7,7 @@ $isAdmin   = $_SESSION['usuario']['nivel_acesso'] === 'admin';
 $disabled  = $isAdmin ? '' : 'disabled';
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
 <title>Jogar TCG - Admin - Meus Dados</title>
 <?php include ROOT . '/admin/includes/assets.php'; ?>
@@ -23,7 +23,7 @@ $disabled  = $isAdmin ? '' : 'disabled';
         <section class="meusDados">
             <div class="row">
                 <div class="col-md-12">
-                    <h2>Meus <span>Dados</span></h2>
+                    <header class="adminPageHeading"><span class="adminEyebrow">Sua conta administrativa</span><h1>Meus dados<span>.</span></h1><p>Mantenha seus dados de acesso atualizados.</p></header>
                 </div>
             </div>
             <div class="formGroup">
@@ -35,7 +35,7 @@ $disabled  = $isAdmin ? '' : 'disabled';
 
                     <div class="col-md-4">
                         <div class="formGroup__item">
-                            <label>Nome</label>
+                            <label for="userName">Nome</label>
                             <input class="input" type="text" id="userName" name="userName"
                                    value="<?= htmlspecialchars($nome) ?>" placeholder="Seu primeiro nome" />
                             <span class="errorText">Digite um nome válido</span>
@@ -44,7 +44,7 @@ $disabled  = $isAdmin ? '' : 'disabled';
 
                     <div class="col-md-4">
                         <div class="formGroup__item">
-                            <label>Sobrenome</label>
+                            <label for="userLastName">Sobrenome</label>
                             <input class="input" type="text" id="userLastName" name="userLastName"
                                    value="<?= htmlspecialchars($sobrenome) ?>" placeholder="Seu sobrenome" />
                             <span class="errorText">Digite um sobrenome válido</span>
@@ -53,7 +53,7 @@ $disabled  = $isAdmin ? '' : 'disabled';
 
                     <div class="col-md-4">
                         <div class="formGroup__item">
-                            <label>CPF</label>
+                            <label for="userCpf">CPF</label>
                             <input class="input" type="text" id="userCpf" name="userCpf"
                                    value="<?= htmlspecialchars($_SESSION['usuario']['cpf']) ?>"
                                    placeholder="___.___.___-__" <?= $disabled ?> />
@@ -63,7 +63,7 @@ $disabled  = $isAdmin ? '' : 'disabled';
 
                     <div class="col-md-8">
                         <div class="formGroup__item">
-                            <label>E-mail</label>
+                            <label for="userEmail">E-mail</label>
                             <input class="input" type="text" id="userEmail" name="userEmail"
                                    value="<?= htmlspecialchars($_SESSION['usuario']['email']) ?>"
                                    placeholder="Seu e-mail" />
@@ -73,7 +73,7 @@ $disabled  = $isAdmin ? '' : 'disabled';
 
                     <div class="col-md-4">
                         <div class="formGroup__item">
-                            <label>Nível de acesso</label>
+                            <label for="userLevelAccess">Nível de acesso</label>
                             <select class="input" id="userLevelAccess" name="userLevelAccess" <?= $disabled ?>>
                                 <option value="admin"  <?= $_SESSION['usuario']['nivel_acesso'] === 'admin'  ? 'selected' : '' ?>>ADMIN</option>
                                 <option value="editor" <?= $_SESSION['usuario']['nivel_acesso'] === 'editor' ? 'selected' : '' ?>>EDITOR</option>
@@ -92,7 +92,7 @@ $disabled  = $isAdmin ? '' : 'disabled';
 
                     <div class="col-md-6">
                         <div class="formGroup__item">
-                            <label>Nova senha</label>
+                            <label for="userPassword">Nova senha</label>
                             <input class="input" type="password" id="userPassword" name="userPassword"
                                    placeholder="Entre 6 e 20 caracteres" />
                             <span class="errorText">A senha deve ter entre 6 e 20 caracteres</span>
@@ -101,7 +101,7 @@ $disabled  = $isAdmin ? '' : 'disabled';
 
                     <div class="col-md-6">
                         <div class="formGroup__item">
-                            <label>Confirmar nova senha</label>
+                            <label for="userConfirmPassword">Confirmar nova senha</label>
                             <input class="input" type="password" id="userConfirmPassword" name="userConfirmPassword"
                                    placeholder="Repita a nova senha" />
                             <span class="errorText">As senhas não são iguais</span>

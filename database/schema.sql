@@ -180,6 +180,8 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
     `senha_hash`      VARCHAR(255)    NOT NULL,
     `foto_perfil`     VARCHAR(255)    NULL,
     `status`          ENUM('ativo','inativo') NOT NULL DEFAULT 'ativo',
+    `beta_tester`     TINYINT          NOT NULL DEFAULT 0,
+    `session_version` INT              NOT NULL DEFAULT 1,
     `created_at`      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`      TIMESTAMP       NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),

@@ -10,6 +10,8 @@ if (-not $deployRoot.StartsWith($projectRoot + [IO.Path]::DirectorySeparatorChar
 
 Push-Location $projectRoot
 try {
+    npm run build:admin
+    if ($LASTEXITCODE -ne 0) { throw 'O build do admin falhou.' }
     npm run build:client
     if ($LASTEXITCODE -ne 0) {
         throw 'O build do cliente falhou.'
@@ -30,6 +32,19 @@ try {
 
     foreach ($directory in @('api', 'client')) {
         Copy-Item -LiteralPath (Join-Path $projectRoot $directory) -Destination (Join-Path $releaseRoot $directory) -Recurse
+    }
+
+    # Only runtime assets: no LESS sources, test fixtures or dependency directories.
+    foreach ($directory in @('admin', 'assets/fontawesome')) {
+        $sourceRoot = Join-Path $projectRoot $directory
+        Get-ChildItem -LiteralPath $sourceRoot -File -Recurse |
+            Where-Object { $_.Extension -in @('.php', '.js', '.css', '.woff2', '.woff', '.ttf', '.eot', '.png', '.svg') } |
+            ForEach-Object {
+                $relative = $_.FullName.Substring($projectRoot.Length + 1)
+                $target = Join-Path $releaseRoot $relative
+                New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
+                Copy-Item -LiteralPath $_.FullName -Destination $target
+            }
     }
 
     $releaseConfig = Join-Path $releaseRoot 'config'

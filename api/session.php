@@ -1,6 +1,8 @@
 <?php
 
 declare(strict_types=1);
+require_once dirname(__DIR__) . '/config/player_access.php';
+require_once dirname(__DIR__) . '/config/site_settings.php';
 
 function apiBasePath(): string
 {
@@ -56,17 +58,17 @@ function currentUserId(): ?int
     return isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
 }
 
-function requireUserId(): int
+function requireUserId(PDO $pdo): int
 {
-    $userId = currentUserId();
-    if ($userId === null) {
+    $user = loadAuthenticatedPlayerRow($pdo);
+    if ($user === null) {
         respond([
             'success' => false,
             'error' => 'authentication_required',
             'message' => 'Entre na sua conta para continuar.',
         ], 401);
     }
-    return $userId;
+    return (int) $user['id'];
 }
 
 function avatarPublicUrl(?string $storedPath): ?string
@@ -85,10 +87,11 @@ function publicUser(array $row): array
         'sobrenome' => $row['sobrenome'],
         'email' => $row['email'],
         'foto_perfil' => avatarPublicUrl($row['foto_perfil'] ?? null),
+        'beta_tester' => (bool) ($row['beta_tester'] ?? false),
     ];
 }
 
-function loadCurrentUser(PDO $pdo): ?array
+function loadAuthenticatedPlayerRow(PDO $pdo): ?array
 {
     $userId = currentUserId();
     if ($userId === null) {
@@ -96,15 +99,27 @@ function loadCurrentUser(PDO $pdo): ?array
     }
 
     $statement = $pdo->prepare(
-        'SELECT id, nome, sobrenome, email, foto_perfil, status FROM usuarios WHERE id = ? LIMIT 1'
+        'SELECT * FROM usuarios WHERE id = ? LIMIT 1'
     );
     $statement->execute([$userId]);
     $user = $statement->fetch();
 
-    if (!$user || $user['status'] !== 'ativo') {
-        unset($_SESSION['user_id']);
+    if (!$user || !playerSessionMatches($user, $_SESSION)) {
+        unset($_SESSION['user_id'], $_SESSION['player_version'], $_SESSION['csrf_token']);
         return null;
     }
-    return publicUser($user);
+    return $user;
 }
 
+function loadCurrentUser(PDO $pdo): ?array
+{
+    $row = loadAuthenticatedPlayerRow($pdo);
+    return $row ? publicUser($row) : null;
+}
+
+function viewerSiteSettings(PDO $pdo): array
+{
+    $settings = publicSiteSettings($pdo);
+    $user = loadCurrentUser($pdo);
+    return $settings + ['can_play' => playerMayPlay($settings['play_enabled'], $user), 'viewer_id' => $user['id'] ?? null];
+}

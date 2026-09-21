@@ -6,6 +6,11 @@ import browserSync from 'browser-sync';
 
 const bs = browserSync.create();
 
+const copyAdminFonts = () => gulp.src([
+    'node_modules/@fontsource/montserrat/files/montserrat-latin-400-normal.woff2',
+    'node_modules/@fontsource/montserrat/files/montserrat-latin-600-normal.woff2'
+], { encoding: false }).pipe(gulp.dest('admin/styles/fonts'));
+
 const compileLessRoot = () =>
     gulp.src('styles/style.min.less')
         .pipe(less())
@@ -21,6 +26,8 @@ const compileLessAdmin = () =>
         .pipe(rename('style.min.css'))
         .pipe(gulp.dest('admin/styles'))
         .pipe(bs.stream());
+
+export const buildAdmin = gulp.series(copyAdminFonts, compileLessAdmin);
 
 const serve = (done) => {
     bs.init({
@@ -58,7 +65,7 @@ const watch = () => {
 };
 
 export default gulp.series(
-    gulp.parallel(compileLessRoot, compileLessAdmin),
+    gulp.parallel(compileLessRoot, buildAdmin),
     serve,
     watch
 );

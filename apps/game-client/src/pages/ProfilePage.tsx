@@ -23,7 +23,7 @@ export function ProfilePage() {
   useEffect(() => {
     getUserProfile().then((data) => {
       setProfile(data);
-      setValues({ ...emptyValues, firstName: data.nome, lastName: data.sobrenome, phone: formatPhone(data.telefone), birthDate: data.data_nascimento });
+      setValues({ ...emptyValues, firstName: data.nome, lastName: data.sobrenome, phone: formatPhone(data.telefone ?? ""), birthDate: data.data_nascimento ?? "" });
     }).catch((reason: Error) => setNotice({ type: 'error', text: reason.message })).finally(() => setLoading(false));
   }, []);
 
@@ -47,7 +47,8 @@ export function ProfilePage() {
     if (values.lastName.trim().length < 2) next.lastName = 'Informe um sobrenome valido.';
     const phoneError = validatePhone(values.phone); if (phoneError) next.phone = phoneError;
     if (!values.birthDate) next.birthDate = 'Informe sua data de nascimento.';
-    if (values.newPassword || values.currentPassword || values.passwordConfirmation) {
+    // A senha atual sozinha e ignorada: o navegador costuma auto-preenche-la.
+    if (values.newPassword || values.passwordConfirmation) {
       if (!values.currentPassword) next.currentPassword = 'Informe sua senha atual.';
       const passwordError = validatePassword(values.newPassword); if (passwordError) next.newPassword = passwordError;
       if (values.passwordConfirmation !== values.newPassword) next.passwordConfirmation = 'As senhas nao sao iguais.';
@@ -61,7 +62,8 @@ export function ProfilePage() {
     if (Object.keys(validation).length) { setNotice({ type: 'error', text: 'Confira os campos destacados.' }); return; }
     setSaving(true); setNotice(null);
     try {
-      const result = await updateUserProfile(values, csrfToken, photo);
+      const payload = values.newPassword ? values : { ...values, currentPassword: '' };
+      const result = await updateUserProfile(payload, csrfToken, photo);
       setProfile(result.profile); setPhoto(null);
       setValues((current) => ({ ...current, currentPassword: '', newPassword: '', passwordConfirmation: '' }));
       await refresh(); setNotice({ type: 'success', text: 'Seus dados foram atualizados com sucesso.' });

@@ -8,13 +8,14 @@ export interface AuthUser {
   sobrenome: string;
   email: string;
   foto_perfil: string | null;
+  beta_tester: boolean;
 }
 
 export type RegisteredUser = AuthUser;
 export interface AuthSession { user: AuthUser; csrf_token: string; }
 
 export interface UserProfile extends AuthUser {
-  telefone: string;
+  telefone: string | null;
   cpf: string;
   data_nascimento: string;
   created_at: string;
