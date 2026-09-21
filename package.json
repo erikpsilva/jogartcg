@@ -15,6 +15,9 @@
     "build:client": "npm run build --workspace @jogartcg/game-client",
     "build:server": "npm run build --workspace @jogartcg/game-server",
     "typecheck": "npm run typecheck --workspaces --if-present",
+    "release": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/build-release.ps1",
+    "deploy:check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-production.ps1",
+    "deploy": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/deploy-production.ps1 -Publish",
     "mobile:sync": "npm run cap:sync --workspace @jogartcg/game-client",
     "mobile:android": "npm run cap:open:android --workspace @jogartcg/game-client",
     "mobile:ios": "npm run cap:open:ios --workspace @jogartcg/game-client"
