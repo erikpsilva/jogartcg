@@ -62,6 +62,7 @@ export interface PendingDecision {
   kind: 'mulligan' | 'targets' | 'optional' | 'order' | 'amount' | 'discard' | 'singers';
   player: PlayerId;
   label: string;
+  description?: string;
   options: DecisionOption[];
   min: number;
   max: number;
@@ -87,6 +88,7 @@ interface EffectFrame { effect: Effect; context: Context; accepted?: boolean }
 interface BagEntry extends Context {
   id: string;
   label: string;
+  description?: string;
   effects: Effect[];
   optional: boolean;
   condition?: RuleCondition;
@@ -598,7 +600,7 @@ function enqueue(state: GameState, context: Context, effects: Effect[]): void {
 function resolveAbility(state: GameState, ability: BagEntry, accepted = false): void {
   if (!conditionMet(state, ability, ability.condition)) return;
   if (ability.optional && !accepted) {
-    prompt(state, { kind: 'optional', player: ability.player, label: ability.label, options: [{ id: 'yes', label: 'Sim' }], min: 0, max: 1 }, { kind: 'ability', ability });
+    prompt(state, { kind: 'optional', player: ability.player, label: ability.label, description: ability.description ?? ability.source.card.textPt ?? ability.source.card.text, options: [{ id: 'yes', label: 'Usar efeito' }], min: 0, max: 1 }, { kind: 'ability', ability });
   } else {
     if (ability.support) {
       const found = find(state, ability.source.iid);
@@ -611,7 +613,7 @@ function resolveAbility(state: GameState, ability: BagEntry, accepted = false): 
 function beginEffect(state: GameState, frame: EffectFrame): void {
   const { effect, context } = frame;
   if (effect.optional && !frame.accepted) {
-    prompt(state, { kind: 'optional', player: context.player, label: `${cardName(context.source.card)}: ${effectName(effect.op)}?`, options: [{ id: 'yes', label: 'Sim' }], min: 0, max: 1 }, { kind: 'optional', frame });
+    prompt(state, { kind: 'optional', player: context.player, label: `${cardName(context.source.card)}: ${effectName(effect.op)}?`, description: context.source.card.textPt ?? context.source.card.text, options: [{ id: 'yes', label: 'Usar efeito' }], min: 0, max: 1 }, { kind: 'optional', frame });
     return;
   }
   const eligible = targets(state, effect.target, context);
@@ -619,14 +621,14 @@ function beginEffect(state: GameState, frame: EffectFrame): void {
   if (effect.target.kind === 'chosen') {
     const max = Math.min(effect.target.max ?? 1, eligible.length);
     const min = Math.min(effect.target.min ?? 1, max);
-    prompt(state, { kind: 'targets', player: context.player, label: `${cardName(context.source.card)}: ${effectName(effect.op)}`, options: eligible.map(iid => cardOption(state, iid)), min, max }, { kind: 'targets', frame });
+    prompt(state, { kind: 'targets', player: context.player, label: `${cardName(context.source.card)}: ${effectName(effect.op)}`, description: context.source.card.textPt ?? context.source.card.text, options: eligible.map(iid => cardOption(state, iid)), min, max }, { kind: 'targets', frame });
   } else prepareAmounts(state, frame, eligible, []);
 }
 function prepareAmounts(state: GameState, frame: EffectFrame, chosen: string[], amounts: number[]): void {
   if (frame.effect.upTo && amounts.length < chosen.length) {
     const target = chosen[amounts.length];
     const maximum = frame.effect.op === 'heal' ? Math.min(frame.effect.amount ?? 0, find(state, target)?.instance.damage ?? 0) : frame.effect.amount ?? 0;
-    prompt(state, { kind: 'amount', player: frame.context.player, label: `${cardName(frame.context.source.card)}: quantidade (${cardOption(state, target).label})`, options: Array.from({ length: maximum + 1 }, (_, amount) => ({ id: String(amount), label: String(amount) })), min: 1, max: 1 }, { kind: 'amount', frame, targets: chosen, amounts });
+    prompt(state, { kind: 'amount', player: frame.context.player, label: `${cardName(frame.context.source.card)}: quantidade (${cardOption(state, target).label})`, description: frame.context.source.card.textPt ?? frame.context.source.card.text, options: Array.from({ length: maximum + 1 }, (_, amount) => ({ id: String(amount), label: String(amount) })), min: 1, max: 1 }, { kind: 'amount', frame, targets: chosen, amounts });
     return;
   }
   executeEffect(state, frame, chosen, amounts);
@@ -657,7 +659,7 @@ function executeEffect(state: GameState, frame: EffectFrame, chosen: string[], a
       if (!hand.length || amount === 0) continue;
       // Each affected player chooses their own discards. Remaining players resolve in order.
       if (index + 1 < chosen.length) state.queue.unshift(...chosen.slice(index + 1).map(next => ({ effect: { ...effect, target: { kind: 'player' as const, owner: next === context.player ? 'you' as const : 'opponent' as const } }, context })));
-      prompt(state, { kind: 'discard', player: victim, label: `Descartar ${Math.min(amount, hand.length)} carta(s)`, options: hand.map(card => cardOption(state, card.iid)), min: Math.min(amount, hand.length), max: Math.min(amount, hand.length) }, { kind: 'discard', frame, victim });
+      prompt(state, { kind: 'discard', player: victim, label: `Descartar ${Math.min(amount, hand.length)} carta(s)`, description: frame.context.source.card.textPt ?? frame.context.source.card.text, options: hand.map(card => cardOption(state, card.iid)), min: Math.min(amount, hand.length), max: Math.min(amount, hand.length) }, { kind: 'discard', frame, victim });
       return;
     } else if (found) {
       const card = found.instance;

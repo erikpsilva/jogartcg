@@ -14,7 +14,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg', 'brand/favicon.png', 'brand/logo-jogar-tcg.png', 'brand/card-icon.png', 'brand/lor-card-back.webp'],
+      includeAssets: ['icon.svg', 'brand/favicon.png', 'brand/logo-jogar-tcg.png', 'brand/card-icon.png', 'brand/lor-card-back.webp', 'brand/lorcana-items/*.png'],
       manifest: {
         name: 'Jogar TCG',
         short_name: 'JogarTCG',

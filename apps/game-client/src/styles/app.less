@@ -565,6 +565,7 @@ img { max-width: 100%; }
 }
 
 .auth-card {
+  scroll-margin-top: 92px;
   position: relative;
   display: grid;
   gap: 18px;
@@ -1023,7 +1024,7 @@ body.modal-open { overflow: hidden; }
   .install-button { min-height: 36px; padding: 8px 10px; font-size: 12px; }
   .mobile-menu-toggle { width: 34px; height: 27px; display: grid; place-content: center; gap: 4px; padding: 4px 7px; border: 1px solid #3d424c; border-radius: 5px; background: #111318; cursor: pointer; }
   .mobile-menu-toggle span { width: 18px; height: 2px; display: block; background: @primary; transition: transform .18s ease,opacity .18s ease; }.mobile-menu-toggle[aria-expanded=true] span:nth-child(1) { transform: translateY(6px) rotate(45deg); }.mobile-menu-toggle[aria-expanded=true] span:nth-child(2) { opacity: 0; }.mobile-menu-toggle[aria-expanded=true] span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
-  .mobile-site-menu { position: fixed; z-index: 60; inset: 0; display: grid; place-content: center; padding: 72px 26px 30px; visibility: hidden; opacity: 0; background: radial-gradient(circle at 50% 10%,#24200f,#08090c 48%,#030405); transition: opacity .2s ease,visibility .2s ease; }
+  .mobile-site-menu { position: fixed; z-index: 2000; top: 0; right: 0; bottom: 0; left: 0; width: 100vw; height: 100dvh; display: grid; place-content: center; padding: max(72px,env(safe-area-inset-top)) max(26px,env(safe-area-inset-right)) max(30px,env(safe-area-inset-bottom)) max(26px,env(safe-area-inset-left)); overflow-y: auto; visibility: hidden; opacity: 0; background: radial-gradient(circle at 50% 10%,#24200f,#08090c 48%,#030405); transition: opacity .2s ease,visibility .2s ease; }
   .mobile-site-menu--open { visibility: visible; opacity: 1; }.mobile-site-menu > button { position: absolute; top: 18px; right: 20px; width: 42px; height: 42px; border: 1px solid #555b65; border-radius: 50%; color: #fff; background: #111318; font: 28px Montserrat,sans-serif; cursor: pointer; }.mobile-site-menu nav { width: min(360px,calc(100vw - 52px)); display: grid; gap: 12px; }.mobile-site-menu nav a { display: grid; gap: 5px; padding: 18px 20px; border: 1px solid #373b43; border-radius: 8px; color: #fff; background: #111318; font-size: 21px; font-weight: 600; text-transform: uppercase; }.mobile-site-menu nav a.active { color: #111; border-color: @primary; background: @primary; }.mobile-site-menu nav small { color: #9ea4ae; font-size: 12px; font-weight: 400; text-transform: none; }.mobile-site-menu nav a.active small { color: #3d310e; }
   .catalog-page { padding-top: 22px; }
   .catalog-hero { padding-bottom: 44px; }
@@ -1114,11 +1115,11 @@ body.modal-open { overflow: hidden; }
 
 /* Mesa de jogo */
 .app-shell--game { min-height: 100vh; background: #060810; }
-.game-main { min-height: 100vh; }
+.game-main { min-height: 100vh; background: radial-gradient(circle at 50% 20%,#11182a,#03050a 72%); }
 .game-table-page {
   --rail: 220px;
   position: relative; display: grid; grid-template: 76px minmax(700px, calc(100vh - 76px)) / var(--rail) minmax(740px, 1fr) var(--rail);
-  min-width: 1180px; min-height: 100vh; overflow: hidden; color: #f7f3e8; background: #070a12;
+  width: 100%; max-width: 1884px; min-width: 1180px; min-height: 100vh; margin-inline: auto; overflow: hidden; color: #f7f3e8; background: #070a12; box-shadow: 0 0 70px #000;
 }
 .game-table-topbar { grid-column: 1 / -1; display: grid; grid-template-columns: var(--rail) 1fr var(--rail); align-items: center; z-index: 20; border-bottom: 1px solid rgba(221,177,82,.28); background: rgba(6,9,17,.96); box-shadow: 0 8px 30px #0009; }
 .game-table-brand { display: grid; place-items: center; height: 76px; border-right: 1px solid #ffffff12; }
@@ -1147,11 +1148,17 @@ body.modal-open { overflow: hidden; }
 .test-mode-note div { display: grid; gap: 5px; }
 .test-mode-note strong { color: #ffd46d; font-size: 14px; font-weight: 600; }
 .test-mode-note span { color: #aab3c5; font-size: 14px; line-height: 1.5; }
-.game-board { position: relative; min-width: 0; overflow: hidden; background: radial-gradient(ellipse at center,#cda875 0%,#a97b4f 57%,#34261f 100%); isolation: isolate; }
+.game-board { position: relative; min-width: 0; overflow: hidden; background-color: #071326; background-image: url('../brand/lorcana-items/imgCampoAdversario.png'),url('../brand/lorcana-items/imgMeuCampo.png'); background-position: center top,center bottom; background-repeat: no-repeat; background-size: 100% 50.5%,100% 50.5%; isolation: isolate; }
 .game-board::before, .game-board::after { content: ''; position: absolute; z-index: -1; inset: 0; pointer-events: none; }
-.game-board::before { background: radial-gradient(circle at 3% 12%,#d6347066 0 8%,transparent 18%), radial-gradient(circle at 96% 18%,#bd296d66 0 9%,transparent 19%), radial-gradient(circle at 5% 88%,#276f4666 0 12%,transparent 25%), radial-gradient(circle at 96% 86%,#73326288 0 12%,transparent 24%); border: 20px solid #173a2b88; box-shadow: inset 0 0 70px #081b13; }
-.game-board::after { inset: 45% 25%; border: 1px solid #f5d89a30; border-radius: 50%; box-shadow: 0 0 0 45px #f5d89a0c,0 0 0 90px #f5d89a0a; }
-.board-ornament { position: absolute; top: 0; left: 50%; width: 420px; height: 65px; transform: translateX(-50%); border-radius: 0 0 50% 50%; background: linear-gradient(#173a2b,#355c38 50%,transparent); filter: drop-shadow(0 8px 12px #0008); }
+.game-board::before { background: linear-gradient(180deg,#0804162b 0%,transparent 32%,#02071422 70%,#02071466 100%); box-shadow: inset 0 0 60px #02040bd9; }
+.game-board::after { inset: 39% 25%; border: 1px solid #d8b45a28; border-radius: 50%; box-shadow: 0 0 0 40px #3f85c60a,0 0 0 80px #734fba0b; }
+.board-ornament { display: none; }
+.board-skin { position: absolute; z-index: 1; inset: 0; pointer-events: none; }
+.board-skin span { position: absolute; left: 0; width: 100%; display: block; background-position: center; background-repeat: no-repeat; background-size: 100% 100%; filter: drop-shadow(0 0 5px #e1b84a66); }
+.board-skin__opponent { top: 0; height: 50%; background-image: url('../brand/lorcana-items/frameCampoAdversario.png'); }
+.board-skin__middle { z-index: 2; top: 50%; height: 16%; background-image: url('../brand/lorcana-items/frameMeiodaArena.png'); transform: translateY(-50%); }
+.board-skin__player { bottom: 0; height: 50%; background-image: url('../brand/lorcana-items/frameMeuCampo.png'); }
+.opponent-zone, .player-zone, .board-divider { z-index: 2; }
 .opponent-hand { position: absolute; z-index: 5; top: -32px; left: 50%; width: 320px; height: 135px; transform: translateX(-50%); }
 .game-card { position: relative; display: block; width: 92px; aspect-ratio: 5 / 7; padding: 0; overflow: hidden; border: 2px solid #e2bd67; border-radius: 7px; background: #111624; box-shadow: 0 5px 15px #0009; cursor: pointer; transition: transform .18s ease, box-shadow .18s ease; }
 .game-card img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -1181,8 +1188,10 @@ body.modal-open { overflow: hidden; }
 .deck-stack::before, .deck-stack::after { content: ''; position: absolute; inset: 3px -4px -3px 4px; z-index: -1; border: 1px solid #bd9041; border-radius: 7px; background: #111628; }
 .deck-stack::after { inset: 6px -7px -6px 7px; }
 .deck-stack i, .right-deck i { position: absolute; right: -9px; bottom: -7px; display: grid; place-items: center; width: 29px; height: 29px; border: 2px solid #e8c46f; border-radius: 50%; color: #fff; background: #111827; font-size: 14px; font-style: normal; font-weight: 600; }
-.board-divider { position: absolute; top: 49%; left: 9%; right: 9%; height: 1px; background: linear-gradient(90deg,transparent,#f6dfa760,transparent); text-align: center; }
-.board-divider span { position: relative; top: -8px; padding: 3px 12px; color: #6e4d30; background: #b98e60; font-size: 14px; letter-spacing: .22em; }
+.board-divider { position: absolute; top: 49%; left: 9%; right: 9%; height: 1px; background: transparent; text-align: center; }
+.board-divider span { position: relative; top: -14px; padding: 5px 16px; color: #d8b86f; border: 1px solid #c39a494f; border-radius: 20px; background: #081222c7; box-shadow: 0 0 18px #080b15; font-size: 12px; letter-spacing: .16em; text-transform: uppercase; }
+.field-zone-label { position: absolute; z-index: 2; left: 50%; color: #d9bc7d; font-size: 12px; letter-spacing: .13em; text-transform: uppercase; text-shadow: 0 2px 8px #000; transform: translateX(-50%); pointer-events: none; }
+.field-zone-label--opponent { top: 20%; }.field-zone-label--player { top: 72%; }
 .player-hand { position: absolute; z-index: 8; bottom: -53px; left: 50%; width: 580px; height: 220px; transform: translateX(-50%); }
 .player-hand .game-card { --hand-x: 0px; --hand-r: 0deg; position: absolute; bottom: 0; left: 50%; width: 112px; transform: translateX(var(--hand-x)) rotate(var(--hand-r)); transform-origin: center 240px; box-shadow: 0 0 0 2px #00c5ff,0 0 18px #008cffaa; }
 .player-hand .game-card:not(.game-card--back):hover { z-index: 12; transform: translateX(var(--hand-x)) translateY(-28px) rotate(var(--hand-r)) scale(1.14); box-shadow: 0 0 0 3px #00c8ff,0 0 30px #00b9ff; }

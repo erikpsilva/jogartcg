@@ -97,8 +97,10 @@ export function GameTablePage() {
       </div>
 
       <main className="game-board">
+        <div className="board-skin" aria-hidden="true"><span className="board-skin__opponent" /><span className="board-skin__middle" /><span className="board-skin__player" /></div>
         <div className="board-ornament board-ornament--top" />
         <div className="opponent-hand" aria-label="Mão do oponente">{Array.from({ length: 5 }, (_, index) => <CardFace key={index} className={`opponent-hand__card opponent-hand__card--${index + 1}`} />)}</div>
+        <span className="field-zone-label field-zone-label--opponent">Campo do oponente</span>
         <div className="opponent-zone">
           <div className="field-row field-row--opponent">{opponentField.map((card) => <CardFace card={card} key={card.id} onClick={() => inspectCard(card, 'opponent-field')} />)}</div>
         </div>
@@ -109,6 +111,7 @@ export function GameTablePage() {
           <b>{opponentDiscardPile.length}</b><small>Descarte</small>
         </button>
         <div className="board-divider"><span>CAMPO DE DESAFIO</span></div>
+        <span className="field-zone-label field-zone-label--player">Seu campo</span>
         <div className="player-zone">
           <div className="field-row">{playerField.map((card) => <CardFace card={card} key={card.id} onClick={() => inspectCard(card, 'player-field')} />)}</div>
         </div>

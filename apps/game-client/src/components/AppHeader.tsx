@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useInstallApp } from '../pwa/InstallContext';
@@ -24,7 +25,16 @@ export function AppHeader() {
     try { await logout(); } finally { navigate('/cartas'); }
   }
 
-  return (
+  const mobileMenu = <div className={`mobile-site-menu ${mobileMenuOpen ? 'mobile-site-menu--open' : ''}`} id="mobile-site-menu" aria-hidden={!mobileMenuOpen}>
+    <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Fechar menu">×</button>
+    <nav aria-label="Navegação mobile">
+      <NavLink to="/cartas" onClick={() => setMobileMenuOpen(false)}>Cartas<small>Consulte o catálogo completo</small></NavLink>
+      <NavLink to="/meus-decks" onClick={() => setMobileMenuOpen(false)}>Meus decks<small>Monte e gerencie suas listas</small></NavLink>
+      {playEnabled && <NavLink to="/jogar" onClick={() => { setMobileMenuOpen(false); showInstallSuggestion(); }}>Jogar<small>Entre na arena</small></NavLink>}
+    </nav>
+  </div>;
+
+  return <>
     <header className="site-header">
       <div className="site-header__inner">
         <NavLink className="brand" to="/cartas" aria-label="Jogar TCG — catálogo"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></NavLink>
@@ -42,20 +52,13 @@ export function AppHeader() {
                 <button type="button" onClick={() => void handleLogout()}><strong>Sair</strong><small>Encerrar sessão</small></button>
               </div>
             </details>
-          ) : <NavLink className="button button--ghost" to="/entrar">Entrar</NavLink>}
+          ) : <NavLink className="button button--ghost" to="/entrar" state={{ scrollToLogin: true }}>Entrar</NavLink>}
             <button className="mobile-menu-toggle" type="button" aria-expanded={mobileMenuOpen} aria-controls="mobile-site-menu" aria-label={mobileMenuOpen ? 'Fechar menu' : 'Abrir menu'} onClick={() => setMobileMenuOpen((open) => !open)}><span /><span /><span /></button>
           </div>
           <NavLink className="button button--primary" to="/decks/novo"><span>+</span> Montar deck</NavLink>
         </div>
       </div>
-      <div className={`mobile-site-menu ${mobileMenuOpen ? 'mobile-site-menu--open' : ''}`} id="mobile-site-menu" aria-hidden={!mobileMenuOpen}>
-        <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Fechar menu">×</button>
-        <nav aria-label="Navegação mobile">
-          <NavLink to="/cartas" onClick={() => setMobileMenuOpen(false)}>Cartas<small>Consulte o catálogo completo</small></NavLink>
-          <NavLink to="/meus-decks" onClick={() => setMobileMenuOpen(false)}>Meus decks<small>Monte e gerencie suas listas</small></NavLink>
-          {playEnabled && <NavLink to="/jogar" onClick={() => { setMobileMenuOpen(false); showInstallSuggestion(); }}>Jogar<small>Entre na arena</small></NavLink>}
-        </nav>
-      </div>
     </header>
-  );
+    {createPortal(mobileMenu, document.body)}
+  </>;
 }
