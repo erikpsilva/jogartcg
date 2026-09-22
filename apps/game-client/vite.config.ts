@@ -14,30 +14,25 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg', 'brand/favicon.png', 'brand/logo-jogar-tcg.png', 'brand/card-icon.png', 'brand/lor-card-back.webp', 'brand/lorcana-items/*.png'],
+      includeAssets: ['brand/favicon.png', 'brand/app-icon-*.png', 'brand/apple-touch-icon.png', 'brand/logo-jogar-tcg.png', 'brand/card-icon.png', 'brand/lor-card-back.webp', 'brand/lorcana-items/*.png'],
       // Padrão do Workbox + ícones dos textos das cartas (src/assets/card-icons), para funcionarem offline.
       workbox: { globPatterns: ['**/*.{js,css,html}', 'assets/*.png'] },
       manifest: {
         name: 'Jogar TCG',
+        lang: 'pt-BR',
         short_name: 'JogarTCG',
         description: 'Monte, importe e jogue com seus decks.',
         theme_color: '#08090b',
         background_color: '#050607',
         display: 'standalone',
         orientation: 'any',
+        // Mesmo emblema do favicon (images/icon.png), nos tamanhos que a instalação pede.
+        // O maskable tem margem porque o Android recorta o ícone em círculo/gota.
         icons: [
-          {
-            src: 'icon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml',
-            purpose: 'any maskable'
-          },
-          {
-            src: 'brand/favicon.png',
-            sizes: '32x32',
-            type: 'image/png',
-            purpose: 'any'
-          }
+          { src: 'brand/favicon.png', sizes: '32x32', type: 'image/png', purpose: 'any' },
+          { src: 'brand/app-icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: 'brand/app-icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+          { src: 'brand/app-icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
         ]
       }
     })
