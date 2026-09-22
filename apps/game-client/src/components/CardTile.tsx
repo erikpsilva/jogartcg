@@ -36,7 +36,7 @@ export function CardTile({ card, setName }: { card: CatalogCard; setName: string
           <span><small>Custo</small><b>{card.cost ?? '—'}</b></span>
           <span><small>Força</small><b>{card.strength ?? '—'}</b></span>
           <span><small>Vontade</small><b>{card.willpower ?? '—'}</b></span>
-          <span><small>História</small><b>{card.lore ?? '—'}</b></span>
+          <span><small>Lore</small><b>{card.lore ?? '—'}</b></span>
         </div>
       </div>
     </article>

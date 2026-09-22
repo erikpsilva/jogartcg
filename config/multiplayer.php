@@ -35,9 +35,15 @@ function multiplayerNodeBinary(): string
     return 'node';
 }
 
+/**
+ * Prefere o pacote unico (motor embutido, sem node_modules): e o unico que a
+ * release envia, porque o link de workspace para o game-core nao sobrevive ao FTP.
+ */
 function multiplayerRefereeScript(): string
 {
-    return dirname(__DIR__) . '/services/game-server/dist/referee.js';
+    $dist = dirname(__DIR__) . '/services/game-server/dist';
+    $bundle = $dist . '/referee.bundle.mjs';
+    return is_file($bundle) ? $bundle : $dist . '/referee.js';
 }
 
 final class RefereeUnavailable extends RuntimeException {}

@@ -1433,3 +1433,26 @@ body.modal-open { overflow: hidden; }
 @media (min-width: 901px) {
   .opponent-hand { top: -72px; }
 }
+
+// Símbolos do Lorcana nos textos das cartas (components/CardText.tsx).
+// O PNG de referência serve de máscara: a forma é a original e a cor acompanha o texto.
+.card-symbol {
+  display: inline-block;
+  width: 1.05em;
+  height: 1.05em;
+  margin: 0 .08em;
+  vertical-align: -.17em;
+  background-color: currentColor;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+.card-symbol--strength { -webkit-mask-image: url('../assets/card-icons/strength.png'); mask-image: url('../assets/card-icons/strength.png'); }
+.card-symbol--willpower { -webkit-mask-image: url('../assets/card-icons/willpower.png'); mask-image: url('../assets/card-icons/willpower.png'); }
+.card-symbol--lore { -webkit-mask-image: url('../assets/card-icons/lore.png'); mask-image: url('../assets/card-icons/lore.png'); }
+.card-symbol--exert { -webkit-mask-image: url('../assets/card-icons/exert.png'); mask-image: url('../assets/card-icons/exert.png'); }
+.card-symbol--ink { -webkit-mask-image: url('../assets/card-icons/ink.png'); mask-image: url('../assets/card-icons/ink.png'); }
+.card-symbol--inkable { -webkit-mask-image: url('../assets/card-icons/inkable.png'); mask-image: url('../assets/card-icons/inkable.png'); }

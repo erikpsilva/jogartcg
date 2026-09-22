@@ -48,7 +48,7 @@ A limpeza roda sob demanda, no início de cada requisição de sala. Não há cr
 ## Instalação
 
 1. Aplique `database/migrations/2026-09-21-multiplayer-rooms.sql`. A migration é idempotente.
-2. Compile o motor e o árbitro com `npm run build`.
+2. Compile o motor e o árbitro com `npm run build`. O build do árbitro gera `services/game-server/dist/referee.bundle.mjs`, com o motor embutido e sem depender de `node_modules`. É esse arquivo que a release (`scripts/build-release.ps1`) envia para a produção, junto com um `.htaccess` que bloqueia `services/` para o navegador.
 3. Confirme que o Apache enxerga o Node. No Windows, `C:\Program Files\nodejs\node.exe` é detectado sozinho. Em outro caminho, defina `JOGARTCG_NODE_BINARY`.
 
 > **Hospedagem:** o servidor precisa de Node e de `proc_open` habilitado no PHP. Hospedagem compartilhada comum às vezes não oferece nenhum dos dois. O contrato do árbitro (JSON de entrada e de saída) foi feito para, se preciso, virar um endpoint HTTP em `services/game-server` sem mudar o PHP.

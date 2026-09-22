@@ -9,3 +9,22 @@ Pontos de código relevantes: `packages/game-core/src/cards.ts` usa os caractere
 Implemente um renderizador seguro que escape o texto e substitua apenas tokens conhecidos por ícones inline acessíveis, sem `innerHTML` não confiável; preserve quebras de linha, tradução e texto original. Nos templates PHP, crie helper equivalente com escaping e `nl2br`; ajuste tamanho/alinhamento dos símbolos para não quebrar linhas ou sair da área da carta renderizada. No React, use um componente compartilhado e CSS responsivo. Guarde os ativos necessários no local público correto para web, PWA e mobile. Não altere o texto bruto consumido pelo motor de regras nem faça substituições persistidas no banco.
 
 Valide com os testes existentes do motor, `npm run typecheck`, `npm run mobile:sync`, lint PHP para arquivos alterados e inspeção de amostras de cartas com cada símbolo. O usuário prefere fazer a navegação visual das telas; não navegue por elas. Preserve o worktree atual; não faça commit, push ou deploy sem pedido explícito. Se encontrar símbolos sem correspondente inequívoco nos PNGs, documente a lacuna em vez de adivinhar.
+
+## Resultado (21/09/2026)
+
+| Caractere | Ícone | Onde |
+|---|---|---|
+| `¤` | iconStrength (Força) | textos PT e EN |
+| `⛉` | iconWillpower (Vontade) | só nos textos EN (ver lacuna 2) |
+| `◊` | iconLore (História) | textos PT e EN |
+| `⟳` | iconExert (Exaurir) | textos PT e EN |
+| `⬡` | iconInk (Tinta) | textos PT e EN: é o `{I}` do LorcanaJSON, tinta, não a moldura do custo |
+| `◉` | iconInkable (Tinteiro) | só nos textos EN: "carta com ◉" = carta que pode ir ao tinteiro |
+
+- React: `apps/game-client/src/components/CardText.tsx` + `.card-symbol` em `styles/app.less`; ícones em `src/assets/card-icons/` (128 px, gerados das referências; entram no precache do PWA).
+- PHP: `includes/card_symbols.php` (`cardTextHtml`) + `.card-symbol` em `pages/carta-traduzida/card-translation.less`, usando os PNGs de `images/icons/`.
+- Os PNGs são usados como máscara CSS (forma original, cor do texto). Não houve vetorização: sem ferramenta de traçado fiel disponível, ficaram os PNGs originais.
+
+Lacunas:
+1. **iconCost** não tem caractere nos textos (é a moldura do custo impresso); ficou sem uso.
+2. A tradução automática antiga **apagou `⛉` e `◉`** dos textos PT (40 textos com `⛉` e 5 com `◉` em EN; zero em PT) e trocou `◉` por `□` em 2 habilidades PT (cartas 1830 e 1884). `tools/translate_lorcana.py` agora protege os dois; os textos já gravados só se corrigem retraduzindo essas cartas.

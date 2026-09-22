@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once ROOT . '/config/database.php';
+require_once ROOT . '/includes/card_symbols.php';
 
 function cardExampleEscape(?string $value): string
 {
@@ -119,7 +120,7 @@ $translatedFlavorText = trim((string) ($card['flavor_text_pt_br'] ?: $card['flav
                             </div>
 
                             <div class="card-translation__rules <?= cardExampleEscape($textClass) ?>">
-                                <div class="card-translation__rules-text"><?= nl2br(cardExampleEscape($translatedText)) ?></div>
+                                <div class="card-translation__rules-text"><?= cardTextHtml($translatedText) ?></div>
                                 <?php if ($translatedFlavorText !== ''): ?>
                                     <div class="card-translation__flavor"><?= nl2br(cardExampleEscape($translatedFlavorText)) ?></div>
                                 <?php endif; ?>
@@ -153,12 +154,12 @@ $translatedFlavorText = trim((string) ($card['flavor_text_pt_br'] ?: $card['flav
 
                     <div class="card-example__text-block card-example__text-block--translated">
                         <span>Texto exibido em PT-BR</span>
-                        <p><?= nl2br(cardExampleEscape($translatedText)) ?></p>
+                        <p><?= cardTextHtml($translatedText) ?></p>
                     </div>
 
                     <details class="card-example__original-text">
                         <summary>Conferir texto original em inglês</summary>
-                        <p><?= nl2br(cardExampleEscape($card['full_text_en'])) ?></p>
+                        <p><?= cardTextHtml($card['full_text_en']) ?></p>
                     </details>
 
                     <div class="card-example__metadata">

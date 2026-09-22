@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 require_once ROOT . '/config/database.php';
+require_once ROOT . '/includes/card_symbols.php';
 
 function renderedCardEscape(?string $value): string
 {
@@ -85,7 +86,7 @@ $usesProtectedStatsLayout = (int) $card['source_id'] === 7;
             </div>
 
             <div class="card-translation__rules <?= renderedCardEscape($textClass) ?>">
-                <div class="card-translation__rules-text"><?= nl2br(renderedCardEscape($translatedText)) ?></div>
+                <div class="card-translation__rules-text"><?= cardTextHtml($translatedText) ?></div>
                 <?php if ($translatedFlavor !== ''): ?>
                     <div class="card-translation__flavor"><?= nl2br(renderedCardEscape($translatedFlavor)) ?></div>
                 <?php endif; ?>

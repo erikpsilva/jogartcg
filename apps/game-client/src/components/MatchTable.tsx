@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { Link } from 'react-router-dom';
 import { activeDecisionPlayer, availableInk, getStats, type CardInstance, type GameAction, type GameState, type PlayerId } from '@jogartcg/game-core';
 import { inkBottleAsset, type BotMatch, type DisplayGameCard } from '../game/bot-session';
+import { CardText } from './CardText';
 
 const backImage = './brand/lor-card-back.webp';
 const displayCard = (entry: CardInstance) => entry.card as DisplayGameCard;
@@ -195,8 +196,8 @@ export function MatchTable({
       <div className="match-card-detail__description">
         <p className="match-card-detail__meta">{displayCard(selected).fullName || selected.card.name} · Custo {getStats(state, selected.iid).cost}</p>
         <p>Força {getStats(state, selected.iid).strength} · Vontade {getStats(state, selected.iid).willpower} · Lore {getStats(state, selected.iid).lore}{selected.damage > 0 ? ` · Dano ${selected.damage}` : ''}</p>
-        <p className="match-card-detail__text">{displayCard(selected).textPt || selected.card.text || 'Esta carta não possui habilidades.'}</p>
-        {selected.card.text && <details><summary>Texto original</summary><p className="match-card-detail__text">{selected.card.text}</p></details>}
+        <p className="match-card-detail__text">{(displayCard(selected).textPt || selected.card.text) ? <CardText text={displayCard(selected).textPt || selected.card.text} /> : 'Esta carta não possui habilidades.'}</p>
+        {selected.card.text && <details><summary>Texto original</summary><p className="match-card-detail__text"><CardText text={selected.card.text} /></p></details>}
       </div>
       <div className="match-card-detail__action-panel">
         <div className="match-actions">{actionButtons()}</div>
@@ -208,7 +209,7 @@ export function MatchTable({
       const target = visibleCards.find((card) => card.iid === targetId);
       return <button className="match-choice" key={index} disabled={busy} onClick={() => void dispatch(action)}>{target && <img src={target.card.image} alt="" />}<span>{shortLabel(action)}</span></button>;
     })}</div></Dialog>}
-    {pending && <Dialog key={pending.id} title={pending.label}><div className={`pending-effect pending-effect--${pending.kind}`}><strong>{pending.kind === 'optional' ? 'Efeito opcional' : pending.kind === 'mulligan' ? 'Troca inicial' : 'Escolha necessária'}</strong>{pending.description && <p>{pending.description}</p>}</div>{pending.kind !== 'optional' && <p>{pending.min === 0 ? 'Você pode continuar sem selecionar nenhuma opção.' : `Selecione ${pending.min === pending.max ? pending.min : `${pending.min} a ${pending.max}`} opção(ões).`}</p>}{pending.kind !== 'optional' && <div className="match-choice-grid">{pending.options.map((option) => {
+    {pending && <Dialog key={pending.id} title={pending.label}><div className={`pending-effect pending-effect--${pending.kind}`}><strong>{pending.kind === 'optional' ? 'Efeito opcional' : pending.kind === 'mulligan' ? 'Troca inicial' : 'Escolha necessária'}</strong>{pending.description && <p><CardText text={pending.description} /></p>}</div>{pending.kind !== 'optional' && <p>{pending.min === 0 ? 'Você pode continuar sem selecionar nenhuma opção.' : `Selecione ${pending.min === pending.max ? pending.min : `${pending.min} a ${pending.max}`} opção(ões).`}</p>}{pending.kind !== 'optional' && <div className="match-choice-grid">{pending.options.map((option) => {
       const entry = visibleCards.find((card) => card.iid === option.iid || card.iid === option.id);
       return <button className="match-choice" key={option.id} aria-pressed={choiceIds.includes(option.id)} onClick={() => chooseOption(option.id)}>{entry && <img src={entry.card.image} alt="" />}<span>{option.label}</span></button>;
     })}</div>}{pending.kind === 'optional' ? <div className="pending-effect__actions"><button type="button" disabled={busy} onClick={() => void dispatch({ type: 'choose', player: 'player', optionIds: ['yes'] })}>Usar efeito</button><button type="button" disabled={busy} onClick={() => void dispatch({ type: 'choose', player: 'player', optionIds: [] })}>Não usar</button></div> : <button className="match-choice-confirm" disabled={busy || choiceIds.length < pending.min || choiceIds.length > pending.max} onClick={() => void dispatch({ type: 'choose', player: 'player', optionIds: choiceIds })}>{choiceIds.length ? `Confirmar (${choiceIds.length})` : state.phase === 'mulligan' ? 'Manter minha mão' : pending.min > 0 ? 'Confirmar escolha' : 'Continuar sem selecionar'}</button>}</Dialog>}

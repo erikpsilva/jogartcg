@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { BattleOrientationGate, useBattleOrientationBlocked } from '../components/BattleOrientationGate';
 import { getCard, getCards, type CardDetail, type CatalogCard } from '../services/catalog-api';
+import { CardText } from '../components/CardText';
 
 type ZoneCard = CatalogCard & { exhausted?: boolean; facedown?: boolean };
 type CardZone = 'hand' | 'player-field' | 'opponent-field';
@@ -128,7 +129,7 @@ export function GameTablePage() {
             <small>{selectedZone === 'hand' ? 'Carta na sua mão' : selectedZone === 'player-field' ? 'Carta no seu campo' : 'Carta do oponente'}</small>
             <strong>{selectedDetail?.pt_br.full_name || selected.full_name}</strong>
             <span>{[selectedDetail?.pt_br.type || selected.type, selected.color, selected.cost != null ? `Custo ${selected.cost}` : null].filter(Boolean).join(' · ')}</span>
-            <p>{selectedDetail?.pt_br.full_text || (selectedDetail ? 'Esta carta não possui texto de regra.' : 'Carregando tradução e habilidades...')}</p>
+            <p>{selectedDetail?.pt_br.full_text ? <CardText text={selectedDetail.pt_br.full_text} /> : (selectedDetail ? 'Esta carta não possui texto de regra.' : 'Carregando tradução e habilidades...')}</p>
             {selectedDetail?.pt_br.flavor_text && <blockquote>{selectedDetail.pt_br.flavor_text}</blockquote>}
             <div className="selected-card-preview__actions">
               {selectedZone === 'hand' && <><button type="button" onClick={() => simulateAction('Jogar no campo')}>Jogar no campo</button>{selected.inkwell && <button type="button" onClick={() => simulateAction('Adicionar à tinta')}>Adicionar à tinta</button>}</>}

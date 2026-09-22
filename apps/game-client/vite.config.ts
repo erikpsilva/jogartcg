@@ -15,6 +15,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg', 'brand/favicon.png', 'brand/logo-jogar-tcg.png', 'brand/card-icon.png', 'brand/lor-card-back.webp', 'brand/lorcana-items/*.png'],
+      // Padrão do Workbox + ícones dos textos das cartas (src/assets/card-icons), para funcionarem offline.
+      workbox: { globPatterns: ['**/*.{js,css,html}', 'assets/*.png'] },
       manifest: {
         name: 'Jogar TCG',
         short_name: 'JogarTCG',

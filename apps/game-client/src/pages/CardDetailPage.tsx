@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getCard, type CardDetail } from '../services/catalog-api';
+import { CardText } from '../components/CardText';
 
 export function CardDetailPage() {
   const { cardId } = useParams();
@@ -47,7 +48,8 @@ export function CardDetailPage() {
           <div className="card-detail__heading">
             <span className="eyebrow">Coleção {card.set_code} · Carta #{card.number ?? '—'}</span>
             <h1>{card.pt_br.full_name || card.full_name}</h1>
-            <p>{card.original.full_name}</p>
+            {/* Nomes nao sao traduzidos: o original so aparece se por algum motivo diferir. */}
+            {card.original.full_name && card.original.full_name !== (card.pt_br.full_name || card.full_name) && <p>{card.original.full_name}</p>}
           </div>
 
           <div className="detail-tags">
@@ -61,20 +63,20 @@ export function CardDetailPage() {
             <div><dt>Custo</dt><dd>{card.cost ?? '—'}</dd></div>
             <div><dt>Força</dt><dd>{card.strength ?? '—'}</dd></div>
             <div><dt>Vontade</dt><dd>{card.willpower ?? '—'}</dd></div>
-            <div><dt>História</dt><dd>{card.lore ?? '—'}</dd></div>
+            <div><dt>Lore</dt><dd>{card.lore ?? '—'}</dd></div>
           </dl>
 
           <div className="translation-panel">
             <span className="translation-panel__label">Tradução PT-BR</span>
             {card.pt_br.subtypes_text && <strong>{card.pt_br.subtypes_text}</strong>}
-            <p>{card.pt_br.full_text || 'Esta carta não possui texto de regras.'}</p>
+            <p>{card.pt_br.full_text ? <CardText text={card.pt_br.full_text} /> : 'Esta carta não possui texto de regras.'}</p>
             {card.pt_br.flavor_text && <blockquote>{card.pt_br.flavor_text}</blockquote>}
           </div>
 
           <details className="original-panel">
             <summary>Conferir texto original em inglês</summary>
             {card.original.subtypes_text && <strong>{card.original.subtypes_text}</strong>}
-            <p>{card.original.full_text || 'This card has no rules text.'}</p>
+            <p>{card.original.full_text ? <CardText text={card.original.full_text} /> : 'This card has no rules text.'}</p>
             {card.original.flavor_text && <blockquote>{card.original.flavor_text}</blockquote>}
           </details>
 

@@ -37,6 +37,11 @@ $python = optionValue($argv, '--python') ?: getenv('LORCANA_PYTHON_BIN') ?: 'pyt
 $vendorPath = $projectRoot . '/.tools/python';
 $modelPath = $projectRoot . '/.tools/models/translate-en_pt-1_9';
 $limit = max(0, (int) (optionValue($argv, '--limit') ?? 0));
+// --all: refaz tudo (inclusive revisoes antigas) com a politica atual de traducao.
+// --ids=1,2,3: so estas cartas. --dry-run: mostra o resultado sem gravar.
+$retranslateAll = in_array('--all', $argv, true);
+$dryRun = in_array('--dry-run', $argv, true);
+$onlyIds = array_values(array_filter(array_map('intval', explode(',', (string) (optionValue($argv, '--ids') ?? '')))));
 
 if (!is_dir($vendorPath) || !is_dir($modelPath . '/model')) {
     fwrite(STDERR, "Tradutor local nao instalado em .tools. Consulte o README.\n");
@@ -45,14 +50,16 @@ if (!is_dir($vendorPath) || !is_dir($modelPath . '/model')) {
 
 $pdo = getDbConnection();
 $limitSql = $limit > 0 ? ' LIMIT ' . $limit : '';
+$cardFilter = $onlyIds ? 'source_id IN (' . implode(',', $onlyIds) . ')' : ($retranslateAll ? '1 = 1' : "translation_status = 'pending'");
+$setFilter = $onlyIds ? '1 = 0' : ($retranslateAll ? '1 = 1' : "translation_status = 'pending'");
 $sets = $pdo->query(
-    "SELECT code, name_en, type_en FROM lorcana_sets WHERE active = 1 AND translation_status = 'pending' ORDER BY number, code{$limitSql}"
+    "SELECT code, name_en, type_en FROM lorcana_sets WHERE active = 1 AND {$setFilter} ORDER BY number, code{$limitSql}"
 )->fetchAll();
 $cards = $pdo->query(
     "SELECT source_id, name_en, version_en, type_en, color_en, rarity_en, story_en,
             subtypes_en_json, subtypes_text_en, keyword_abilities_en_json, abilities_en_json,
             effects_en_json, full_text_en, flavor_text_en, clarifications_en_json, errata_en_json
-     FROM lorcana_cards WHERE active = 1 AND translation_status = 'pending' ORDER BY source_id{$limitSql}"
+     FROM lorcana_cards WHERE active = 1 AND {$cardFilter} ORDER BY source_id{$limitSql}"
 )->fetchAll();
 
 if (!$sets && !$cards) {
@@ -60,7 +67,14 @@ if (!$sets && !$cards) {
     exit(0);
 }
 
-$payload = ['sets' => [], 'cards' => []];
+// Termos que o tradutor nao pode mexer, tirados do catalogo inteiro (nao so do lote):
+// nomes de personagens, itens e locais citados nos efeitos, e todos os subtipos.
+$names = $pdo->query("SELECT DISTINCT name_en FROM lorcana_cards WHERE type_en <> 'Action' AND name_en <> ''")->fetchAll(PDO::FETCH_COLUMN);
+$subtypes = [];
+foreach ($pdo->query('SELECT subtypes_en_json FROM lorcana_cards WHERE subtypes_en_json IS NOT NULL')->fetchAll(PDO::FETCH_COLUMN) as $json) {
+    foreach (translationJson($json) ?? [] as $subtype) $subtypes[$subtype] = true;
+}
+$payload = ['sets' => [], 'cards' => [], 'glossary' => ['names' => $names, 'subtypes' => array_keys($subtypes)]];
 foreach ($sets as $set) {
     $payload['sets'][] = [
         'code' => $set['code'],
@@ -118,6 +132,22 @@ if ($exitCode !== 0 || !is_file($outputPath)) {
 
 $translated = json_decode(file_get_contents($outputPath), true, 512, JSON_THROW_ON_ERROR);
 $engine = (string) ($translated['engine'] ?? 'argos-translate-en-pt-1.9');
+$fallbacks = $translated['fallbacks'] ?? [];
+
+if ($dryRun) {
+    foreach ($translated['cards'] ?? [] as $card) {
+        $title = $card['name'] . ($card['version'] ? ' - ' . $card['version'] : '');
+        fwrite(STDOUT, "\n#{$card['id']} {$title}\n  " . ($card['subtypes_text'] ?? '') . "\n");
+        fwrite(STDOUT, preg_replace('/^/m', '  ', (string) ($card['full_text'] ?? '')) . "\n");
+        if (!empty($card['flavor_text'])) fwrite(STDOUT, '  ~ ' . $card['flavor_text'] . "\n");
+    }
+    fwrite(STDOUT, "\nTrechos mantidos em ingles (tradutor perdeu um termo protegido): " . count($fallbacks) . "\n");
+    foreach ($fallbacks as $text) fwrite(STDOUT, "  - {$text}\n");
+    @unlink($inputPath);
+    @unlink($outputPath);
+    @rmdir($tempDirectory);
+    exit(0);
+}
 
 $setStatement = $pdo->prepare(
     "UPDATE lorcana_sets SET name_pt_br = ?, type_pt_br = ?, translation_status = 'automatic' WHERE code = ?"
@@ -173,3 +203,6 @@ try {
 }
 
 fwrite(STDOUT, sprintf("Traducao automatica salva: %d colecoes e %d cartas.\n", count($sets), count($cards)));
+if ($fallbacks) {
+    fwrite(STDOUT, count($fallbacks) . " trecho(s) mantidos em ingles porque o tradutor perdeu um termo protegido.\n");
+}

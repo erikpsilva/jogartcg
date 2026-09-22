@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext';
 import { getCard, getCards, getFilters, getSets, type CardDetail, type CatalogCard, type CatalogFilters, type CatalogSet } from '../services/catalog-api';
 import { downloadDeckExport, getDeck, getDeckExport, getDeckFormats, importDeck, saveDeck, type DeckFormat, type DeckFormatKey } from '../services/deck-api';
+import { CardText } from '../components/CardText';
 
 type BuilderMode = 'cards' | 'import';
 interface DeckEntry { card: CatalogCard; quantity: number; }
@@ -195,16 +196,16 @@ export function DeckBuilderPage() {
                   <span><small>Custo</small><b>{selectedDetail.cost ?? '—'}</b></span>
                   <span><small>Força</small><b>{selectedDetail.strength ?? '—'}</b></span>
                   <span><small>Vontade</small><b>{selectedDetail.willpower ?? '—'}</b></span>
-                  <span><small>História</small><b>{selectedDetail.lore ?? '—'}</b></span>
+                  <span><small>Lore</small><b>{selectedDetail.lore ?? '—'}</b></span>
                 </div>
                 <section className="card-preview__translation">
                   <span>Tradução PT-BR</span>
                   {selectedDetail.pt_br.story && <small>História: {selectedDetail.pt_br.story}</small>}
                   {selectedDetail.pt_br.subtypes_text && <strong>{selectedDetail.pt_br.subtypes_text}</strong>}
-                  <p>{selectedDetail.pt_br.full_text || 'Esta carta não possui texto de regras.'}</p>
+                  <p>{selectedDetail.pt_br.full_text ? <CardText text={selectedDetail.pt_br.full_text} /> : 'Esta carta não possui texto de regras.'}</p>
                   {selectedDetail.pt_br.flavor_text && <blockquote>{selectedDetail.pt_br.flavor_text}</blockquote>}
-                  {detailLines(selectedDetail.pt_br.clarifications).map((line, index) => <p className="card-preview__note" key={`clarification-${index}`}><b>Esclarecimento:</b> {line}</p>)}
-                  {detailLines(selectedDetail.pt_br.errata).map((line, index) => <p className="card-preview__note" key={`errata-${index}`}><b>Errata:</b> {line}</p>)}
+                  {detailLines(selectedDetail.pt_br.clarifications).map((line, index) => <p className="card-preview__note" key={`clarification-${index}`}><b>Esclarecimento:</b> <CardText text={line} /></p>)}
+                  {detailLines(selectedDetail.pt_br.errata).map((line, index) => <p className="card-preview__note" key={`errata-${index}`}><b>Errata:</b> <CardText text={line} /></p>)}
                 </section>
                 <dl className="card-preview__meta">
                   <div><dt>Artista</dt><dd>{selectedDetail.artists?.join(', ') || 'Não informado'}</dd></div>
@@ -215,7 +216,7 @@ export function DeckBuilderPage() {
                 <details className="card-preview__original">
                   <summary>Conferir texto original em inglês</summary>
                   {selectedDetail.original.subtypes_text && <strong>{selectedDetail.original.subtypes_text}</strong>}
-                  <p>{selectedDetail.original.full_text || 'This card has no rules text.'}</p>
+                  <p>{selectedDetail.original.full_text ? <CardText text={selectedDetail.original.full_text} /> : 'This card has no rules text.'}</p>
                   {selectedDetail.original.flavor_text && <blockquote>{selectedDetail.original.flavor_text}</blockquote>}
                 </details>
                 <button className="button button--primary button--large" type="button" disabled={(deck[selectedDetail.id]?.quantity ?? 0) >= selectedDetail.max_copies_in_deck} onClick={() => { addCard(selectedDetail); setSelectedCard(null); }}>

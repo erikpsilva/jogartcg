@@ -177,7 +177,13 @@ function importItemsFromContent(string $content): array
         foreach ($lines as $line) {
             $values = str_getcsv($line, $delimiter); if (count($values) < 2) continue;
             $row = array_combine($headers, array_pad($values, count($headers), '')); if (!is_array($row)) continue;
-            $items[] = ['quantity' => (int) ($row['quantity'] ?? $row['qty'] ?? 1), 'set' => trim((string) ($row['set'] ?? $row['set_code'] ?? '')), 'number' => (int) ($row['number'] ?? 0), 'name' => trim((string) ($row['name'] ?? $row['card'] ?? $row['full_name'] ?? ''))];
+            $items[] = [
+                'quantity' => (int) ($row['quantity'] ?? $row['qty'] ?? 1),
+                'id' => (int) ($row['card_id'] ?? $row['id'] ?? 0),
+                'identifier' => trim((string) ($row['identifier'] ?? $row['full_identifier'] ?? '')),
+                'set' => trim((string) ($row['set'] ?? $row['set_code'] ?? '')), 'number' => (int) ($row['number'] ?? 0),
+                'name' => trim((string) ($row['name'] ?? $row['card'] ?? $row['full_name'] ?? '')),
+            ];
         }
         return $items;
     }
@@ -188,6 +194,8 @@ function importItemsFromContent(string $content): array
         $quantity = 1;
         if (preg_match('/^(\d+)\s*(?:x|[,;])?\s+(.+?)$/iu', $line, $matches)) { $quantity = (int) $matches[1]; $line = trim($matches[2]); }
         elseif (preg_match('/^(\d+)\s*[,;]\s*(.+)$/u', $line, $matches)) { $quantity = (int) $matches[1]; $line = trim($matches[2], " \t\""); }
+        // Quantidade no fim, usada por alguns sites: "Nome x4" ou "Nome (4)".
+        elseif (preg_match('/^(.+?)\s+[x×]\s*(\d+)$/iu', $line, $matches) || preg_match('/^(.+?)\s*\((\d+)\)$/u', $line, $matches)) { $quantity = (int) $matches[2]; $line = trim($matches[1]); }
         $set = ''; $number = 0;
         if (preg_match('/\(([A-Za-z0-9]+)\)\s*#?(\d+)\s*$/', $line, $match)) { $set = $match[1]; $number = (int) $match[2]; $line = trim(substr($line, 0, -strlen($match[0]))); }
         $items[] = ['quantity' => $quantity, 'name' => trim($line, " \t\""), 'set' => $set, 'number' => $number];
@@ -214,36 +222,75 @@ function importDreambornUrl(string $url): array
     throw new RuntimeException('O Dreamborn nao publicou uma lista legivel nesse link.');
 }
 
+function normalizedCardName(string $value): string
+{
+    return preg_replace('/[^a-z0-9]+/', '', strtolower(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value)) ?? '';
+}
+
+/**
+ * Resolve linhas importadas em cartas do catalogo.
+ *
+ * Coleção + número NAO identifica uma carta sozinho: as impressoes promocionais
+ * (7/P2, 7/C1) repetem a colecao e o numero da carta normal (7/204). Por isso o
+ * nome manda, e colecao/numero servem so para escolher entre impressoes do mesmo
+ * nome. Sem nome, vale a impressao normal da colecao.
+ */
 function resolveImportItems(PDO $pdo, array $items): array
 {
     $resolved = []; $unmatched = [];
     $byId = $pdo->prepare('SELECT * FROM lorcana_cards WHERE active=1 AND source_id=? LIMIT 1');
-    $bySetNumber = $pdo->prepare('SELECT * FROM lorcana_cards WHERE active=1 AND set_code=? AND number=? ORDER BY source_id LIMIT 1');
-    $byName = $pdo->prepare('SELECT * FROM lorcana_cards WHERE active=1 AND (full_name_en=:name OR full_name_pt_br=:name OR name_en=:name OR name_pt_br=:name) ORDER BY (full_name_en=:exact OR full_name_pt_br=:exact) DESC,source_id LIMIT 1');
+    // Impressao normal da colecao ("7/204") antes das promocionais ("7/P2").
+    $bySetNumber = $pdo->prepare("SELECT * FROM lorcana_cards WHERE active=1 AND set_code=? AND number=? ORDER BY (full_identifier REGEXP '^[0-9]+/[0-9]+ ') DESC, source_id");
+    $byIdentifier = $pdo->prepare("SELECT * FROM lorcana_cards WHERE active=1 AND REPLACE(REPLACE(full_identifier, '·', '•'), ' ', '') = ? LIMIT 1");
+    $byFullName = $pdo->prepare('SELECT * FROM lorcana_cards WHERE active=1 AND (full_name_en=? OR full_name_pt_br=?) ORDER BY source_id LIMIT 1');
+    $versionsOf = $pdo->prepare('SELECT DISTINCT full_name_en FROM lorcana_cards WHERE active=1 AND (name_en=? OR name_pt_br=?) LIMIT 3');
     $normalizedNames = null;
     foreach ($items as $item) {
         $quantity = max(0, (int) ($item['quantity'] ?? 0)); if ($quantity < 1) continue;
         $card = false; $id = (int) ($item['id'] ?? 0);
         if ($id > 0) { $byId->execute([$id]); $card = $byId->fetch(); }
         $identifier = (string) ($item['identifier'] ?? ''); $set = (string) ($item['set'] ?? ''); $number = (int) ($item['number'] ?? 0);
-        if (!$card && preg_match('/^0*([A-Za-z0-9]+)[-\/]0*(\d+)/', $identifier, $match)) { $set = $match[1]; $number = (int) $match[2]; }
-        if (!$card && $set !== '' && $number > 0) { $bySetNumber->execute([ltrim($set, '0') ?: '0', $number]); $card = $bySetNumber->fetch(); }
+        // Identificador completo ("7/204 • EN • 5", "1 TFC • EN • 1/P1"): o formato varia
+        // entre impressoes, entao tenta o valor exato antes de interpretar "colecao-numero".
+        if (!$card && $identifier !== '') { $byIdentifier->execute([str_replace([' ', '·'], ['', '•'], $identifier)]); $card = $byIdentifier->fetch(); }
+        if (!$card && preg_match('/^0*([A-Za-z0-9]+)[-\/]0*(\d+)$/', $identifier, $match)) { $set = $match[1]; $number = (int) $match[2]; }
+        $printings = [];
+        if (!$card && $set !== '' && $number > 0) { $bySetNumber->execute([ltrim($set, '0') ?: '0', $number]); $printings = $bySetNumber->fetchAll(); }
+
         $name = preg_replace('/\s+[\[(].*?[\])]\s*$/u', '', trim((string) ($item['name'] ?? ''))) ?: '';
-        if (!$card && $name !== '') { $byName->execute(['name' => $name, 'exact' => $name]); $card = $byName->fetch(); }
+        $named = false;
         if (!$card && $name !== '') {
-            if ($normalizedNames === null) {
-                $normalizedNames = [];
-                foreach ($pdo->query('SELECT * FROM lorcana_cards WHERE active=1')->fetchAll() as $candidate) {
-                    foreach (['full_name_en', 'full_name_pt_br'] as $column) {
-                        $value = (string) ($candidate[$column] ?? '');
-                        if ($value !== '') $normalizedNames[preg_replace('/[^a-z0-9]+/', '', strtolower(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value) ?: $value))] ??= $candidate;
+            $byFullName->execute([$name, $name]); $named = $byFullName->fetch();
+            if (!$named) {
+                if ($normalizedNames === null) {
+                    $normalizedNames = [];
+                    foreach ($pdo->query('SELECT * FROM lorcana_cards WHERE active=1 ORDER BY source_id')->fetchAll() as $candidate) {
+                        foreach (['full_name_en', 'full_name_pt_br'] as $column) {
+                            $value = (string) ($candidate[$column] ?? '');
+                            if ($value !== '') $normalizedNames[normalizedCardName($value)] ??= $candidate;
+                        }
                     }
                 }
+                $named = $normalizedNames[normalizedCardName($name)] ?? false;
             }
-            $normalized = preg_replace('/[^a-z0-9]+/', '', strtolower(iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $name) ?: $name));
-            $card = $normalizedNames[$normalized] ?? false;
+            if (!$named) {
+                // So o nome base ("Stitch"): aceita apenas se existir uma unica versao.
+                $versionsOf->execute([$name, $name]); $versions = $versionsOf->fetchAll(PDO::FETCH_COLUMN);
+                if (count($versions) === 1) { $byFullName->execute([$versions[0], $versions[0]]); $named = $byFullName->fetch(); }
+                elseif (count($versions) > 1) { $unmatched[] = "{$quantity}x {$name} (informe a versão, ex.: {$versions[0]})"; continue; }
+            }
         }
-        if (!$card) { $unmatched[] = $quantity . 'x ' . ($name ?: $identifier ?: "carta #{$id}"); continue; }
+
+        if (!$card && $named) {
+            // Colecao/numero so escolhe a impressao certa entre as que tem este nome.
+            $card = $named;
+            foreach ($printings as $printing) {
+                if (normalizedCardName((string) $printing['full_name_en']) === normalizedCardName((string) $named['full_name_en'])) { $card = $printing; break; }
+            }
+        } elseif (!$card && $printings && $name === '') {
+            $card = $printings[0];
+        }
+        if (!$card) { $unmatched[] = $quantity . 'x ' . ($name ?: $identifier ?: ($set !== '' ? "coleção {$set} nº {$number}" : "carta #{$id}")); continue; }
         $cardId = (int) $card['source_id'];
         if (!isset($resolved[$cardId])) $resolved[$cardId] = ['quantity' => 0, 'card' => cardSummary($card, 'pt-BR')];
         $resolved[$cardId]['quantity'] += $quantity;
@@ -259,8 +306,10 @@ function exportDeckPayload(array $deck, string $type): array
         return ['filename' => $safeName . '.' . $type, 'mime_type' => 'application/json', 'content' => json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)];
     }
     if ($type === 'csv') {
-        $lines = ['quantity,set,number,name'];
-        foreach ($rows as $entry) $lines[] = implode(',', [$entry['quantity'], $entry['card']['set_code'], $entry['card']['number'], '"' . str_replace('"', '""', $entry['card']['full_name']) . '"']);
+        // card_id e identifier distinguem impressoes que dividem colecao, numero e nome.
+        $lines = ['quantity,set,number,name,card_id,identifier'];
+        $quote = static fn(?string $value): string => '"' . str_replace('"', '""', (string) $value) . '"';
+        foreach ($rows as $entry) $lines[] = implode(',', [$entry['quantity'], $entry['card']['set_code'], $entry['card']['number'], $quote($entry['card']['full_name']), $entry['card']['id'], $quote($entry['card']['full_identifier'] ?? '')]);
         return ['filename' => $safeName . '.csv', 'mime_type' => 'text/csv;charset=utf-8', 'content' => implode("\r\n", $lines)];
     }
     return ['filename' => $safeName . '.txt', 'mime_type' => 'text/plain;charset=utf-8', 'content' => implode("\r\n", array_map(static fn(array $entry): string => $entry['quantity'] . ' ' . $entry['card']['full_name'], $rows))];

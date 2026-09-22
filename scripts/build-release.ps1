@@ -16,6 +16,15 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw 'O build do cliente falhou.'
     }
+    # Arbitro das partidas online: build:server gera o pacote unico com o motor embutido.
+    npm run build:core
+    if ($LASTEXITCODE -ne 0) { throw 'O build do motor falhou.' }
+    npm run build:server
+    if ($LASTEXITCODE -ne 0) { throw 'O build do arbitro falhou.' }
+    $refereeBundle = Join-Path $projectRoot 'services/game-server/dist/referee.bundle.mjs'
+    if (-not (Test-Path -LiteralPath $refereeBundle -PathType Leaf)) {
+        throw 'Pacote do arbitro nao gerado (services/game-server/dist/referee.bundle.mjs).'
+    }
 
     if (Test-Path -LiteralPath $releaseRoot) {
         if (-not $releaseRoot.StartsWith($deployRoot + [IO.Path]::DirectorySeparatorChar)) {
@@ -46,6 +55,12 @@ try {
                 Copy-Item -LiteralPath $_.FullName -Destination $target
             }
     }
+
+    # O PHP executa o arbitro pelo Node; o navegador nunca deve acessar a pasta.
+    $releaseReferee = Join-Path $releaseRoot 'services/game-server/dist'
+    New-Item -ItemType Directory -Path $releaseReferee -Force | Out-Null
+    Copy-Item -LiteralPath $refereeBundle -Destination $releaseReferee
+    Set-Content -LiteralPath (Join-Path $releaseRoot 'services/.htaccess') -Value 'Require all denied' -Encoding ascii
 
     $releaseConfig = Join-Path $releaseRoot 'config'
     New-Item -ItemType Directory -Path $releaseConfig -Force | Out-Null
