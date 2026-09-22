@@ -38,6 +38,7 @@ button.play-mode:hover, .play-mode--active { border-color: #f6c941; box-shadow: 
 .bot-table .game-board { min-height: 0; height: 100%; overflow: clip; }
 .bot-table .game-table-right { display: flex; grid-column: 2; grid-row: 2; min-height: 0; height: 100%; gap: 0; overflow-x: hidden; overflow-y: auto; padding: 0 9px 12px; border-left: 1px solid #d7ab51; background-color: #060b16; background-image: linear-gradient(#030817b8,#03081766),url('../brand/lorcana-items/bgLAteral.png'); background-position: center; background-size: cover; box-shadow: inset 8px 0 25px #0009,-8px 0 28px #0009; }
 .bot-table .game-table-right::before { content: ''; position: sticky; z-index: 0; top: 0; flex: 0 0 1px; width: 1px; height: 100%; margin-right: -1px; background: linear-gradient(transparent,#f6d477,#6c3d14,#f6d477,transparent); }
+.game-board-mobile-brand, .game-board-mobile-round, .game-table-right__mobile-actions { display: none; }
 .bot-table .game-table-right .pass-turn { width: calc(100% - 8px); min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 8px; margin: 7px 0; padding: 7px 9px; border: 2px solid #e4bd68; border-radius: 10px; color: #fff; background: linear-gradient(180deg,#087dcb,#034584); box-shadow: inset 0 0 0 2px #02c7ff,0 0 14px #00a9ff88; font-size: 12px; white-space: nowrap; }
 .bot-table .game-table-right .pass-turn > span { color: #fff; font-size: 10px; letter-spacing: -4px; transform: translateX(-2px); }
 .bot-table .game-table-right .pass-turn:disabled { opacity: .4; cursor: not-allowed; box-shadow: none; }
@@ -147,7 +148,17 @@ button.play-mode:hover, .play-mode--active { border-color: #f6c941; box-shadow: 
   .play-mode, .bot-setup { padding: 20px; }
 }
 @media (max-height: 600px), (max-width: 950px) and (orientation: landscape) {
-  .bot-table { --rail: clamp(112px,14vw,128px); --table-header: 34px; --field-card: clamp(32px,10.5vh,60px); --hand-card: clamp(62px,16vh,88px); }
+  .bot-table { --rail: clamp(112px,14vw,128px); --table-header: 0px; --field-card: clamp(32px,10.5vh,60px); --hand-card: clamp(62px,16vh,88px); grid-template: minmax(0,1fr) / minmax(0,1fr) var(--rail); }
+  .bot-table .game-table-topbar { display: none; }
+  .bot-table .game-board { grid-column: 1; grid-row: 1; height: 100dvh; }
+  .bot-table .game-table-right { grid-column: 2; grid-row: 1; height: 100dvh; }
+  .bot-table .game-board-mobile-brand { position: absolute; z-index: 20; top: 0; left: clamp(78px,10vw,105px); width: 94px; height: 48px; display: flex; align-items: center; justify-content: center; padding: 3px 8px 6px; border: 1px solid #c7974355; border-top: 0; border-radius: 0 0 16px 16px; background: #050914e8; box-shadow: 0 7px 18px #0008; }
+  .bot-table .game-board-mobile-brand img { width: 70px; max-height: 42px; object-fit: contain; }
+  .bot-table .game-board-mobile-round { position: absolute; z-index: 20; top: 0; right: clamp(42px,7vw,76px); min-width: 156px; height: 51px; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1px; padding: 4px 15px 7px; border: 1px solid #c7974355; border-top: 0; border-radius: 0 0 17px 17px; color: #fff; background: #050914e8; box-shadow: 0 7px 18px #0008; text-transform: uppercase; }
+  .bot-table .game-board-mobile-round span { color: #e4bd68; font-size: 11px; font-weight: 600; }
+  .bot-table .game-board-mobile-round strong { font-size: 12px; }
+  .bot-table .game-table-right__mobile-actions { position: relative; z-index: 2; width: 100%; min-height: 38px; display: flex; justify-content: flex-end; gap: 3px; padding: 4px 1px; }
+  .bot-table .game-table-right__mobile-actions button { min-width: 34px; height: 30px; padding: 3px 6px; border: 1px solid #40506a; border-radius: 7px; color: #fff; background: #091222df; font: 600 11px Montserrat,sans-serif; white-space: nowrap; }
   .bot-table .game-table-right { justify-content: flex-start; gap: 0; padding: 0 3px 4px; overflow-x: hidden; overflow-y: auto; }
   .bot-table .table-player-card { min-height: 42px; padding: 4px; margin: 0 -3px; }
   .bot-table .table-player-card .table-avatar { width: 27px; height: 27px; flex-basis: 27px; font-size: 10px; }

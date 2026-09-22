@@ -166,6 +166,8 @@ export function MatchTable({
   return <div className="game-table-page bot-table" aria-busy={busy || undefined}>
     <header className="game-table-topbar"><Link className="game-table-brand" to="/jogar"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></Link><div className="game-table-round"><span>Turno {state.turn}</span><strong aria-live="polite">{statusText}</strong></div><div className="game-table-topactions"><button onClick={() => setShowLog(true)} aria-label="Histórico da partida">☷</button><button onClick={() => setExitOpen(true)} aria-label="Sair da mesa">↪ Sair</button></div></header>
     <main className="game-board" aria-label={boardLabel}>
+      <Link className="game-board-mobile-brand" to="/jogar"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></Link>
+      <div className="game-board-mobile-round"><span>Turno {state.turn}</span><strong aria-live="polite">{statusText}</strong></div>
       <div className="board-skin" aria-hidden="true"><span className="board-skin__opponent" /><span className="board-skin__middle" /><span className="board-skin__player" /></div>
       <div className="board-ornament board-ornament--top" />
       <div className="opponent-hand" aria-label={`Mão ${opponentPossessive}: ${bot.hand.length} cartas`}>{bot.hand.map((entry, index) => <MatchCard key={entry.iid} hidden style={fanStyle(index, bot.hand.length, true)} />)}</div>
@@ -183,6 +185,7 @@ export function MatchTable({
       <div className="player-hand" aria-label={`Sua mão: ${player.hand.length} cartas`}>{player.hand.map((entry, index) => <MatchCard key={entry.iid} entry={entry} style={fanStyle(index, player.hand.length, false)} onClick={() => inspectCard(entry.iid)} />)}</div>
     </main>
     <aside className="game-table-right" aria-label="Contadores da partida">
+      <div className="game-table-right__mobile-actions"><button onClick={() => setShowLog(true)} aria-label="Histórico da partida">☷</button><button onClick={() => setExitOpen(true)} aria-label="Sair da mesa">↪ Sair</button></div>
       <section className="table-player-card table-player-card--opponent"><strong>{opponentName}</strong>{opponentBadge}</section>
       <div className="resource-block resource-block--opponent"><img src={inkBottleAsset(inkColors.bot)} alt="" /><div><span>Tinta</span><b>{availableInk(state, 'bot')} <i>/ {bot.inkwell.length}</i></b></div></div>
       <div className="lore-counter lore-counter--opponent"><img src="./brand/lorcana-items/iconDourado.png" alt="" /><div><span>Lore</span><b>{bot.lore} <i>/ 20</i></b></div></div>
