@@ -44,6 +44,7 @@ export function PlayLobbyPage() {
   const [codeCopied, setCodeCopied] = useState(false);
   const roomRevisionRef = useRef(0);
   const botSetupRef = useRef<HTMLElement>(null);
+  const roomSetupRef = useRef<HTMLElement>(null);
   const hasMatch = user ? Boolean(loadBotMatch(user.id)) : false;
 
   function prepareBotMatch() {
@@ -53,6 +54,14 @@ export function PlayLobbyPage() {
       if (window.matchMedia('(max-width: 760px)').matches) {
         botSetupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
+    }));
+  }
+
+  function prepareRoom(nextMode: 'create' | 'join') {
+    setMode(false);
+    setRoomMode(nextMode);
+    window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+      roomSetupRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }));
   }
 
@@ -195,8 +204,8 @@ export function PlayLobbyPage() {
     </header>
     <div className="play-modes">
       <button className={`play-mode ${mode ? 'play-mode--active' : ''}`} onClick={prepareBotMatch}><span aria-hidden="true">◇</span><strong>Contra o bot</strong><p>Escolha os dois decks. Tinta, combate e efeitos são resolvidos durante a partida.</p><b>Preparar partida →</b></button>
-      <button className={`play-mode ${roomMode === 'create' ? 'play-mode--active' : ''}`} onClick={() => { setMode(false); setRoomMode('create'); }}><span aria-hidden="true">＋</span><strong>Criar sala</strong><p>Escolha seu deck e gere um código de seis números.</p><b>Montar lobby →</b></button>
-      <button className={`play-mode ${roomMode === 'join' ? 'play-mode--active' : ''}`} onClick={() => { setMode(false); setRoomMode('join'); }}><span aria-hidden="true">↪</span><strong>Entrar em uma sala</strong><p>Digite o código recebido e escolha seu deck.</p><b>Entrar no lobby →</b></button>
+      <button className={`play-mode ${roomMode === 'create' ? 'play-mode--active' : ''}`} onClick={() => prepareRoom('create')}><span aria-hidden="true">＋</span><strong>Criar sala</strong><p>Escolha seu deck e gere um código de seis números.</p><b>Montar lobby →</b></button>
+      <button className={`play-mode ${roomMode === 'join' ? 'play-mode--active' : ''}`} onClick={() => prepareRoom('join')}><span aria-hidden="true">↪</span><strong>Entrar em uma sala</strong><p>Digite o código recebido e escolha seu deck.</p><b>Entrar no lobby →</b></button>
     </div>
     {resumeRoom && <div className="feedback feedback--info room-resume" role="status"><span>Você tem uma partida online em andamento. Volte em até 3 minutos para não perder por abandono.</span><Link className="button button--primary" to={`/jogar/online/${resumeRoom.id}`}>Voltar para a mesa</Link></div>}
     {error && <div className="feedback feedback--error" role="alert">{error}</div>}
@@ -211,7 +220,7 @@ export function PlayLobbyPage() {
         <p className="bot-setup__note">Treino neste dispositivo, com retomada ao atualizar a página. Efeitos ainda não implementados são ignorados e estas partidas não valem para ranking.</p>
       </>}
     </section>}
-    {roomMode && <section className="room-preview" aria-label={roomMode === 'create' ? 'Criar sala multiplayer' : 'Entrar em sala multiplayer'}>
+    {roomMode && <section className="room-preview" ref={roomSetupRef} aria-label={roomMode === 'create' ? 'Criar sala multiplayer' : 'Entrar em sala multiplayer'}>
       <div className="room-preview__heading"><span className="eyebrow">Multiplayer beta</span><h2>{room ? `Sala ${room.code ?? ''}`.trim() : roomMode === 'create' ? 'Crie sua sala de espera.' : 'Entre com o código da sala.'}</h2><p>{room ? 'Vocês dois escolhem um deck e confirmam “Começar”. A mesa abre sozinha quando os dois estiverem prontos.' : roomMode === 'create' ? 'Gere um código de seis números e envie para o outro jogador.' : 'Digite o código de seis números que o outro jogador enviou.'}</p></div>
       <div className="room-preview__setup">
         {roomMode === 'join' && !room
