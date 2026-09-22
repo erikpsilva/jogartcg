@@ -1,7 +1,5 @@
-import { useRef } from 'react';
 import { Link } from 'react-router-dom';
 import type { CardPrinting, CatalogCard } from '../services/catalog-api';
-import { GalleryDots, GalleryTrack, useGalleryIndex } from './CardGallery';
 
 function colorKey(color: string | null): string {
   return (color || 'neutro').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
@@ -13,32 +11,31 @@ export function cardPrintingsOf(card: CatalogCard): CardPrinting[] {
   return [{ id: card.id, set_code: card.set_code, number: card.number, identifier: null, rarity: card.rarity, image: { full: card.image.full, thumbnail: card.image.thumbnail } }];
 }
 
+/** No catalogo aparece a arte principal; as outras artes sao escolhidas nos detalhes da carta. */
 export function CardTile({ card, setName }: { card: CatalogCard; setName: string | undefined }) {
-  const mediaRef = useRef<HTMLDivElement>(null);
   const printings = cardPrintingsOf(card);
-  const { index, go, pauseHandlers } = useGalleryIndex(printings.length, { autoPlay: true, rootRef: mediaRef });
-  const current = printings[index] ?? printings[0];
+  const image = printings[0].image.thumbnail || printings[0].image.full;
 
   return (
     <article className="card-tile">
-      <div className="card-tile__media" ref={mediaRef} {...pauseHandlers}>
-        {/* O link abre a arte que esta na tela. */}
-        <Link className="card-tile__image-link" to={`/cartas/${current.id}`} aria-label={`Ver ${card.full_name}`}>
-          <GalleryTrack printings={printings} index={index} alt={`Carta original ${card.full_name}`} size="thumbnail" />
-          <span className="card-tile__view">Ver carta <b>→</b></span>
-          {printings.length > 1 && <span className="card-tile__arts">{printings.length} artes</span>}
-        </Link>
-        <GalleryDots printings={printings} index={index} onSelect={go} />
-      </div>
+      <Link className="card-tile__image-link" to={`/cartas/${card.id}`} aria-label={`Ver ${card.full_name}`}>
+        {image ? (
+          <img src={image} alt={`Carta original ${card.full_name}`} loading="lazy" />
+        ) : (
+          <span className="card-tile__image-placeholder">Imagem indisponível</span>
+        )}
+        <span className="card-tile__view">Ver carta <b>→</b></span>
+        {printings.length > 1 && <span className="card-tile__arts">{printings.length} artes</span>}
+      </Link>
 
       <div className="card-tile__content">
         <div className="card-tile__meta">
           <span className="color-dot" data-color={colorKey(card.color)} />
           <span>{card.color || 'Sem cor'}</span>
           <span>•</span>
-          <span>{current.rarity || card.rarity || 'Sem raridade'}</span>
+          <span>{card.rarity || 'Sem raridade'}</span>
         </div>
-        <h2><Link to={`/cartas/${current.id}`}>{card.name}</Link></h2>
+        <h2><Link to={`/cartas/${card.id}`}>{card.name}</Link></h2>
         {card.version && <p>{card.version}</p>}
         <small>{setName || `Coleção ${card.set_code}`} · #{card.number ?? '—'}</small>
 

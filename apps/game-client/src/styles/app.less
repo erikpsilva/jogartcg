@@ -1464,15 +1464,9 @@ body.modal-open { overflow: hidden; }
 .card-gallery__missing { color: @muted; font-size: 14px; text-align: center; }
 @media (prefers-reduced-motion: reduce) { .card-gallery__track { transition: none; } }
 
-.card-gallery__dots { position: absolute; z-index: 4; right: 0; bottom: 6px; left: 0; display: flex; justify-content: center; gap: 6px; pointer-events: none; }
-.card-gallery__dots button { width: 9px; height: 9px; padding: 0; border: 1px solid fade(#fff, 55%); border-radius: 50%; background: fade(#050607, 70%); cursor: pointer; pointer-events: auto; transition: background .2s ease, transform .2s ease; }
-.card-gallery__dots button[aria-pressed="true"] { border-color: @primary-light; background: @primary; transform: scale(1.2); box-shadow: 0 0 8px fade(@primary, 60%); }
-.card-gallery__dots button:focus-visible { outline: 2px solid @primary-light; outline-offset: 2px; }
-
-.card-tile__media, .builder-card__media { position: relative; }
-.card-tile__view { bottom: 26px; }
+.builder-card__media { position: relative; }
+.builder-card__arts { position: absolute; z-index: 3; top: 7px; right: 7px; padding: 3px 7px; color: #08090b; border-radius: 3px; background: @primary-light; font-size: 12px; font-weight: 600; text-transform: uppercase; pointer-events: none; }
 .card-tile__arts { position: absolute; z-index: 3; top: 20px; right: 20px; padding: 4px 8px; color: #08090b; border-radius: 3px; background: @primary-light; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 4px 12px fade(#000, 45%); }
-.builder-card__image .card-gallery__viewport { border-radius: 0; }
 
 // Detalhe da carta e escolha de arte no deck: imagem grande, setas e miniaturas.
 .card-gallery--full .card-gallery__stage { position: relative; aspect-ratio: 1468 / 2048; }

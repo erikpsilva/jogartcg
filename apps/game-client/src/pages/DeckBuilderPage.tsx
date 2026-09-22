@@ -4,7 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { getCard, getCards, getFilters, getSets, withPrinting, type CardDetail, type CatalogCard, type CatalogFilters, type CatalogSet } from '../services/catalog-api';
 import { downloadDeckExport, getDeck, getDeckExport, getDeckFormats, importDeck, saveDeck, type DeckFormat, type DeckFormatKey } from '../services/deck-api';
 import { CardText } from '../components/CardText';
-import { CardGallery, GalleryDots, GalleryTrack, useGalleryIndex } from '../components/CardGallery';
+import { CardGallery } from '../components/CardGallery';
 import { cardPrintingsOf } from '../components/CardTile';
 
 type BuilderMode = 'cards' | 'import';
@@ -25,17 +25,16 @@ function detailLines(value: unknown[] | null): string[] {
 /** Artes diferentes da mesma carta contam juntas no limite de copias. */
 const groupOf = (card: CatalogCard): number => card.print_group_id ?? card.id;
 
+/** Arte principal na lista; a arte que vai para o deck e escolhida no modal da carta. */
 function BuilderCard({ card, quantity, limit, onOpen, onAdd }: { card: CatalogCard; quantity: number; limit: number | null; onOpen: () => void; onAdd: () => void }) {
-  const mediaRef = useRef<HTMLDivElement>(null);
   const printings = cardPrintingsOf(card);
-  const { index, go, pauseHandlers } = useGalleryIndex(printings.length, { autoPlay: true, rootRef: mediaRef });
   return <article className="builder-card">
-    <div className="builder-card__media" ref={mediaRef} {...pauseHandlers}>
+    <div className="builder-card__media">
       <button className="builder-card__image" type="button" onClick={onOpen}>
-        <GalleryTrack printings={printings} index={index} alt={card.full_name} size="thumbnail" />
+        <img src={printings[0].image.thumbnail || printings[0].image.full || ''} alt={card.full_name} />
         {quantity > 0 && <span>{quantity}× no deck</span>}<em>{printings.length > 1 ? `Ampliar e escolher arte (${printings.length})` : 'Ampliar carta'}</em>
       </button>
-      <GalleryDots printings={printings} index={index} onSelect={go} />
+      {printings.length > 1 && <span className="builder-card__arts">{printings.length} artes</span>}
     </div>
     <div className="builder-card__info"><div><small>{card.color} · {card.rarity}</small><strong>{card.name}</strong><span>{card.version || `Carta #${card.number}`}</span></div><button type="button" onClick={onAdd} disabled={limit !== null && quantity >= limit} aria-label={`Adicionar ${card.full_name} (arte principal)`}>+</button></div>
   </article>;
