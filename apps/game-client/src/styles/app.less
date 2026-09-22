@@ -1456,3 +1456,43 @@ body.modal-open { overflow: hidden; }
 .card-symbol--exert { -webkit-mask-image: url('../assets/card-icons/exert.png'); mask-image: url('../assets/card-icons/exert.png'); }
 .card-symbol--ink { -webkit-mask-image: url('../assets/card-icons/ink.png'); mask-image: url('../assets/card-icons/ink.png'); }
 .card-symbol--inkable { -webkit-mask-image: url('../assets/card-icons/inkable.png'); mask-image: url('../assets/card-icons/inkable.png'); }
+
+// --- Galeria de artes da carta (impressoes do mesmo nome) --------------------
+.card-gallery__viewport { width: 100%; height: 100%; overflow: hidden; border-radius: 4.7% / 3.3%; }
+.card-gallery__track { height: 100%; display: flex; transition: transform .6s cubic-bezier(.22, .8, .2, 1); }
+.card-gallery__slide { flex: 0 0 100%; height: 100%; min-width: 0; display: grid; place-items: center; }
+.card-gallery__missing { color: @muted; font-size: 14px; text-align: center; }
+@media (prefers-reduced-motion: reduce) { .card-gallery__track { transition: none; } }
+
+.card-gallery__dots { position: absolute; z-index: 4; right: 0; bottom: 6px; left: 0; display: flex; justify-content: center; gap: 6px; pointer-events: none; }
+.card-gallery__dots button { width: 9px; height: 9px; padding: 0; border: 1px solid fade(#fff, 55%); border-radius: 50%; background: fade(#050607, 70%); cursor: pointer; pointer-events: auto; transition: background .2s ease, transform .2s ease; }
+.card-gallery__dots button[aria-pressed="true"] { border-color: @primary-light; background: @primary; transform: scale(1.2); box-shadow: 0 0 8px fade(@primary, 60%); }
+.card-gallery__dots button:focus-visible { outline: 2px solid @primary-light; outline-offset: 2px; }
+
+.card-tile__media, .builder-card__media { position: relative; }
+.card-tile__view { bottom: 26px; }
+.card-tile__arts { position: absolute; z-index: 3; top: 20px; right: 20px; padding: 4px 8px; color: #08090b; border-radius: 3px; background: @primary-light; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; box-shadow: 0 4px 12px fade(#000, 45%); }
+.builder-card__image .card-gallery__viewport { border-radius: 0; }
+
+// Detalhe da carta e escolha de arte no deck: imagem grande, setas e miniaturas.
+.card-gallery--full .card-gallery__stage { position: relative; aspect-ratio: 1468 / 2048; }
+.card-gallery--full .card-gallery__viewport { box-shadow: 0 28px 60px fade(#000, 68%), 0 0 0 1px fade(@primary, 25%); }
+.card-gallery--full .card-gallery__slide img { width: 100%; height: 100%; max-height: none; object-fit: contain; border-radius: 0; box-shadow: none; }
+.card-gallery__arrow { position: absolute; z-index: 3; top: 50%; width: 38px; height: 38px; display: grid; place-items: center; padding: 0; color: @primary-light; border: 1px solid fade(@primary, 55%); border-radius: 50%; background: fade(#050607, 82%); font-size: 26px; line-height: 1; transform: translateY(-50%); cursor: pointer; }
+.card-gallery__arrow:hover { color: #08090b; background: @primary; }
+.card-gallery__arrow--prev { left: 8px; }
+.card-gallery__arrow--next { right: 8px; }
+.card-gallery__counter { position: absolute; z-index: 3; top: 10px; right: 10px; padding: 4px 9px; color: @primary-light; border-radius: 999px; background: fade(#050607, 82%); font-size: 12px; font-weight: 600; }
+.card-gallery__thumbs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 14px; }
+.card-gallery__thumbs button { width: 74px; display: grid; gap: 4px; padding: 4px; color: #9aa0a9; border: 1px solid #30343c; border-radius: 5px; background: #0d0f13; cursor: pointer; transition: border-color .2s ease, transform .2s ease; }
+.card-gallery__thumbs button:hover { transform: translateY(-2px); border-color: fade(@primary, 55%); }
+.card-gallery__thumbs button[aria-pressed="true"] { color: @primary-light; border-color: @primary; box-shadow: 0 0 0 1px @primary, 0 0 14px fade(@primary, 30%); }
+.card-gallery__thumbs img { width: 100%; max-height: none; aspect-ratio: 1468 / 2048; display: block; object-fit: cover; border-radius: 3px; box-shadow: none; }
+.card-gallery__thumbs small { overflow: hidden; font-size: 10px; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.card-preview__in-deck { margin: 0 0 8px; color: @primary-light; font-size: 14px; }
+
+@media (max-width: 760px) {
+  .card-gallery__thumbs button { width: 60px; }
+  .card-gallery__arrow { width: 32px; height: 32px; font-size: 22px; }
+  .card-tile__arts { top: 12px; right: 12px; font-size: 11px; }
+}

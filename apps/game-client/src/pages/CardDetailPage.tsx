@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getCard, type CardDetail } from '../services/catalog-api';
 import { CardText } from '../components/CardText';
+import { CardGallery } from '../components/CardGallery';
+import { cardPrintingsOf } from '../components/CardTile';
 
 export function CardDetailPage() {
   const { cardId } = useParams();
   const numericId = Number(cardId);
   const [card, setCard] = useState<CardDetail | null>(null);
   const [error, setError] = useState('');
+  // Arte em destaque; comeca pela impressao aberta pelo link.
+  const [printingId, setPrintingId] = useState(numericId);
+  useEffect(() => { setPrintingId(numericId); }, [numericId]);
 
   useEffect(() => {
     if (!Number.isInteger(numericId) || numericId <= 0) {
@@ -34,19 +39,22 @@ export function CardDetailPage() {
     return <div className="page-container"><div className="detail-skeleton">Carregando carta…</div></div>;
   }
 
+  const printings = cardPrintingsOf(card);
+  const printing = printings.find((entry) => entry.id === printingId) ?? printings[0];
+
   return (
     <div className="card-detail page-container">
       <Link className="back-link" to="/cartas">← Voltar ao catálogo</Link>
 
       <div className="card-detail__layout">
         <section className="card-detail__visual">
-          <img src={card.image.full || card.image.thumbnail || ''} alt={`Carta original ${card.original.full_name || card.full_name}`} />
-          <p>A imagem da carta permanece original e sem sobreposição.</p>
+          <CardGallery printings={printings} alt={`Carta original ${card.original.full_name || card.full_name}`} selectedId={printing.id} onSelect={(entry) => setPrintingId(entry.id)} />
+          <p>{printings.length > 1 ? `${printings.length} artes desta carta. ` : ''}A imagem da carta permanece original e sem sobreposição.</p>
         </section>
 
         <section className="card-detail__content">
           <div className="card-detail__heading">
-            <span className="eyebrow">Coleção {card.set_code} · Carta #{card.number ?? '—'}</span>
+            <span className="eyebrow">Coleção {printing.set_code} · Carta #{printing.number ?? '—'}</span>
             <h1>{card.pt_br.full_name || card.full_name}</h1>
             {/* Nomes nao sao traduzidos: o original so aparece se por algum motivo diferir. */}
             {card.original.full_name && card.original.full_name !== (card.pt_br.full_name || card.full_name) && <p>{card.original.full_name}</p>}
@@ -55,7 +63,7 @@ export function CardDetailPage() {
           <div className="detail-tags">
             <span>{card.color}</span>
             <span>{card.type}</span>
-            <span>{card.rarity}</span>
+            <span>{printing.rarity ?? card.rarity}</span>
             {card.inkwell && <span>Tinteiro</span>}
           </div>
 
@@ -81,7 +89,7 @@ export function CardDetailPage() {
           </details>
 
           <div className="card-detail__actions">
-            <Link className="button button--primary" to={`/decks/novo?carta=${card.id}`}>Usar em um deck</Link>
+            <Link className="button button--primary" to={`/decks/novo?carta=${printing.id}`}>Usar em um deck</Link>
             <span>Será necessário entrar para montar e salvar decks.</span>
           </div>
         </section>

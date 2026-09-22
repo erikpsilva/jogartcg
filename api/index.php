@@ -249,6 +249,9 @@ if ($resource === 'cards' && isset($segments[2]) && ctype_digit($segments[2])) {
         'translation_engine' => $row['translation_engine'],
         'translated_at' => $row['translated_at'],
     ];
+    // Galeria: todas as artes desta carta. O id pedido pode ser qualquer uma delas.
+    $groupId = (int) ($row['print_group_id'] ?? $row['source_id']);
+    $data['printings'] = cardPrintings($pdo, [$groupId], $language)[$groupId] ?? [];
     respond(['success' => true, 'language' => $language, 'data' => $data]);
 }
 
@@ -304,20 +307,27 @@ if ($resource === 'cards') {
     }
 
     $where = implode(' AND ', $conditions);
-    $countStatement = $pdo->prepare("SELECT COUNT(*) FROM lorcana_cards WHERE {$where}");
+    // Um item por carta (grupo de impressoes com o mesmo nome completo). Os filtros
+    // valem para qualquer impressao: filtrar pela colecao 9 tambem acha a reimpressao
+    // de uma carta da colecao 2. ?grouped=0 devolve cada impressao separada.
+    $grouped = ($_GET['grouped'] ?? '1') !== '0';
+    $columns = "source_id, print_group_id, set_code, number, name_en, name_pt_br, version_en, version_pt_br,
+                full_name_en, full_name_pt_br, type_en, type_pt_br, color_en, color_pt_br,
+                rarity_en, rarity_pt_br, cost, inkwell, strength, willpower, lore,
+                image_full_url, image_thumbnail_url, image_full_foil_url, translation_status,
+                max_copies_in_deck";
+    $orderBy = "CASE WHEN set_code REGEXP '^[0-9]+$' THEN 0 ELSE 1 END, CAST(set_code AS UNSIGNED), set_code, number, source_id";
+    if ($grouped) {
+        $countStatement = $pdo->prepare("SELECT COUNT(DISTINCT print_group_id) FROM lorcana_cards WHERE {$where}");
+        $sql = "SELECT {$columns} FROM lorcana_cards principal
+                WHERE principal.source_id IN (SELECT print_group_id FROM lorcana_cards WHERE {$where})
+                ORDER BY {$orderBy} LIMIT :limit OFFSET :offset";
+    } else {
+        $countStatement = $pdo->prepare("SELECT COUNT(*) FROM lorcana_cards WHERE {$where}");
+        $sql = "SELECT {$columns} FROM lorcana_cards WHERE {$where} ORDER BY {$orderBy} LIMIT :limit OFFSET :offset";
+    }
     $countStatement->execute($params);
     $total = (int) $countStatement->fetchColumn();
-
-    $sql = "SELECT source_id, set_code, number, name_en, name_pt_br, version_en, version_pt_br,
-                   full_name_en, full_name_pt_br, type_en, type_pt_br, color_en, color_pt_br,
-                   rarity_en, rarity_pt_br, cost, inkwell, strength, willpower, lore,
-                   image_full_url, image_thumbnail_url, image_full_foil_url, translation_status,
-                   max_copies_in_deck
-            FROM lorcana_cards WHERE {$where}
-            ORDER BY
-                CASE WHEN set_code REGEXP '^[0-9]+$' THEN 0 ELSE 1 END,
-                CAST(set_code AS UNSIGNED), set_code, number, source_id
-            LIMIT :limit OFFSET :offset";
     $statement = $pdo->prepare($sql);
     foreach ($params as $key => $value) {
         $statement->bindValue(':' . $key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
@@ -326,6 +336,9 @@ if ($resource === 'cards') {
     $statement->bindValue(':offset', $offset, PDO::PARAM_INT);
     $statement->execute();
     $rows = $statement->fetchAll();
+    $printings = $grouped
+        ? cardPrintings($pdo, array_column($rows, 'print_group_id'), $language, isset($_GET['set']) ? (string) $_GET['set'] : null)
+        : [];
 
     respond([
         'success' => true,
@@ -336,7 +349,11 @@ if ($resource === 'cards') {
             'total' => $total,
             'total_pages' => $total === 0 ? 0 : (int) ceil($total / $perPage),
         ],
-        'data' => array_map(static fn(array $row): array => cardSummary($row, $language), $rows),
+        'data' => array_map(static function (array $row) use ($language, $printings, $grouped): array {
+            $card = cardSummary($row, $language);
+            if ($grouped) $card['printings'] = $printings[(int) $row['print_group_id']] ?? [];
+            return $card;
+        }, $rows),
     ]);
 }
 

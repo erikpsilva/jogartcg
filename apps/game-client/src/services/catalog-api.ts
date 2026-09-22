@@ -6,6 +6,16 @@ export interface CatalogImage {
   full_foil: string | null;
 }
 
+/** Uma arte da carta: mesma carta e mesmas regras, outra impressao (promo, lendaria, reimpressao). */
+export interface CardPrinting {
+  id: number;
+  set_code: string;
+  number: number | null;
+  identifier: string | null;
+  rarity: string | null;
+  image: { full: string | null; thumbnail: string | null };
+}
+
 export interface CatalogCard {
   id: number;
   set_code: string;
@@ -24,6 +34,20 @@ export interface CatalogCard {
   image: CatalogImage;
   translation_status: string;
   max_copies_in_deck: number;
+  /** Impressao principal do grupo: cartas com o mesmo valor sao a mesma carta com outra arte. */
+  print_group_id?: number;
+  /** Todas as artes da carta, a principal primeiro (catalogo agrupado e detalhe). */
+  printings?: CardPrinting[];
+}
+
+/** A carta com a arte escolhida: mesmos dados, id/imagem/colecao/raridade daquela impressao. */
+export function withPrinting<T extends CatalogCard>(card: T, printing: CardPrinting | undefined): T {
+  if (!printing || printing.id === card.id) return card;
+  return {
+    ...card, id: printing.id, set_code: printing.set_code, number: printing.number,
+    rarity: printing.rarity ?? card.rarity,
+    image: { full: printing.image.full, thumbnail: printing.image.thumbnail, full_foil: null },
+  };
 }
 
 export interface LocalizedCardText {

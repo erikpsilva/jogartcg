@@ -12,6 +12,8 @@ set_time_limit(0);
 
 require_once dirname(__DIR__) . '/config/database.php';
 require_once dirname(__DIR__) . '/config/lorcana.php';
+require_once dirname(__DIR__) . '/config/card_images.php';
+require_once dirname(__DIR__) . '/config/card_groups.php';
 
 function logLine(string $message): void
 {
@@ -291,6 +293,10 @@ try {
     );
     $stateStatement->execute([str_replace('T', ' ', $generatedAt), $formatVersion, $checksum]);
     $pdo->commit();
+    // Os links acabaram de ser regravados pela fonte: reaplica as imagens substitutas.
+    applyCardImageOverrides($pdo);
+    // Cartas novas podem ser artes novas de cartas existentes.
+    computePrintGroups($pdo);
 
     $finishStatement = $pdo->prepare(
         "UPDATE lorcana_sync_runs SET status = 'success', source_checksum = ?,

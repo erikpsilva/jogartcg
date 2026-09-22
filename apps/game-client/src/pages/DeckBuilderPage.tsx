@@ -1,9 +1,11 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
-import { getCard, getCards, getFilters, getSets, type CardDetail, type CatalogCard, type CatalogFilters, type CatalogSet } from '../services/catalog-api';
+import { getCard, getCards, getFilters, getSets, withPrinting, type CardDetail, type CatalogCard, type CatalogFilters, type CatalogSet } from '../services/catalog-api';
 import { downloadDeckExport, getDeck, getDeckExport, getDeckFormats, importDeck, saveDeck, type DeckFormat, type DeckFormatKey } from '../services/deck-api';
 import { CardText } from '../components/CardText';
+import { CardGallery, GalleryDots, GalleryTrack, useGalleryIndex } from '../components/CardGallery';
+import { cardPrintingsOf } from '../components/CardTile';
 
 type BuilderMode = 'cards' | 'import';
 interface DeckEntry { card: CatalogCard; quantity: number; }
@@ -18,6 +20,25 @@ function detailLines(value: unknown[] | null): string[] {
     }
     return String(item);
   });
+}
+
+/** Artes diferentes da mesma carta contam juntas no limite de copias. */
+const groupOf = (card: CatalogCard): number => card.print_group_id ?? card.id;
+
+function BuilderCard({ card, quantity, limit, onOpen, onAdd }: { card: CatalogCard; quantity: number; limit: number | null; onOpen: () => void; onAdd: () => void }) {
+  const mediaRef = useRef<HTMLDivElement>(null);
+  const printings = cardPrintingsOf(card);
+  const { index, go, pauseHandlers } = useGalleryIndex(printings.length, { autoPlay: true, rootRef: mediaRef });
+  return <article className="builder-card">
+    <div className="builder-card__media" ref={mediaRef} {...pauseHandlers}>
+      <button className="builder-card__image" type="button" onClick={onOpen}>
+        <GalleryTrack printings={printings} index={index} alt={card.full_name} size="thumbnail" />
+        {quantity > 0 && <span>{quantity}× no deck</span>}<em>{printings.length > 1 ? `Ampliar e escolher arte (${printings.length})` : 'Ampliar carta'}</em>
+      </button>
+      <GalleryDots printings={printings} index={index} onSelect={go} />
+    </div>
+    <div className="builder-card__info"><div><small>{card.color} · {card.rarity}</small><strong>{card.name}</strong><span>{card.version || `Carta #${card.number}`}</span></div><button type="button" onClick={onAdd} disabled={limit !== null && quantity >= limit} aria-label={`Adicionar ${card.full_name} (arte principal)`}>+</button></div>
+  </article>;
 }
 
 export function DeckBuilderPage() {
@@ -44,6 +65,8 @@ export function DeckBuilderPage() {
   const [noticeType, setNoticeType] = useState<'info' | 'error' | 'success'>('info');
   const [selectedCard, setSelectedCard] = useState<CatalogCard | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<CardDetail | null>(null);
+  // Arte escolhida no modal; o botao de adicionar usa exatamente esta impressao.
+  const [modalPrintingId, setModalPrintingId] = useState<number | null>(null);
   const [detailError, setDetailError] = useState('');
   const [importText, setImportText] = useState('');
   const [importUrl, setImportUrl] = useState('');
@@ -78,7 +101,7 @@ export function DeckBuilderPage() {
     getCard(cardId).then((response) => addCard(response.data)).catch(() => { setNoticeType('error'); setNotice('Nao foi possivel adicionar a carta escolhida.'); });
   }, [searchParams]);
   useEffect(() => {
-    setSelectedDetail(null); setDetailError('');
+    setSelectedDetail(null); setDetailError(''); setModalPrintingId(selectedCard?.id ?? null);
     if (!selectedCard) return;
     const controller = new AbortController();
     getCard(selectedCard.id, controller.signal)
@@ -103,10 +126,14 @@ export function DeckBuilderPage() {
     const limit = activeFormat?.maximum_copies === null ? Number.POSITIVE_INFINITY : Math.max(activeFormat?.maximum_copies ?? 4, card.max_copies_in_deck || 4);
     setDeck((current) => {
       const existing = current[card.id];
-      if ((existing?.quantity ?? 0) >= limit) return current;
+      if (groupQuantityIn(current, groupOf(card)) >= limit) return current;
       return { ...current, [card.id]: { card, quantity: (existing?.quantity ?? 0) + 1 } };
     });
   }
+  function groupQuantityIn(current: Record<number, DeckEntry>, group: number): number {
+    return Object.values(current).reduce((total, entry) => total + (groupOf(entry.card) === group ? entry.quantity : 0), 0);
+  }
+  const groupQuantity = (card: CatalogCard): number => groupQuantityIn(deck, groupOf(card));
   function removeCard(cardId: number) {
     setDeck((current) => {
       const existing = current[cardId]; if (!existing) return current;
@@ -146,6 +173,9 @@ export function DeckBuilderPage() {
     catch (reason) { setNoticeType('error'); setNotice(reason instanceof Error ? reason.message : 'Nao foi possivel exportar o deck.'); }
   }
 
+  // Ficha do modal com a arte escolhida (colecao, numero e raridade daquela impressao).
+  const modalView = selectedDetail ? withPrinting(selectedDetail, cardPrintingsOf(selectedDetail).find((printing) => printing.id === modalPrintingId)) : null;
+
   return (
     <div className="deck-builder page-container">
       <header className="builder-heading"><div><span className="eyebrow"><i /> Deck Lab</span><h1>Monte seu deck.</h1><p>Explore, importe e salve sua lista. Rascunhos incompletos também ficam guardados.</p></div><div className="test-profile"><span className="test-profile__avatar">{user?.nome.charAt(0)}{user?.sobrenome.charAt(0)}</span><div><small>Conta conectada</small><strong>{user?.nome} {user?.sobrenome}</strong></div><Link to="/meus-decks">Meus decks</Link></div></header>
@@ -166,11 +196,11 @@ export function DeckBuilderPage() {
               <select aria-label="Tipo" value={query.type} onChange={(event) => setQuery((current) => ({ ...current, type: event.target.value }))}><option value="">Todos os tipos</option>{filters?.types.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
               <button type="button" onClick={() => { setSearchDraft(''); setQuery({ q: '', set: '', color: '', type: '' }); }}>Limpar filtros <span>×</span></button>
             </div>
-            {loading ? <div className="builder-loading">Carregando cartas…</div> : <div className="builder-card-grid">{cards.map((card) => { const quantity = deck[card.id]?.quantity ?? 0; const limit = activeFormat?.maximum_copies === null ? null : Math.max(activeFormat?.maximum_copies ?? 4, card.max_copies_in_deck || 4); return <article className="builder-card" key={card.id}><button className="builder-card__image" type="button" onClick={() => setSelectedCard(card)}><img src={card.image.thumbnail || card.image.full || ''} alt={card.full_name} />{quantity > 0 && <span>{quantity}× no deck</span>}<em>Ampliar carta</em></button><div className="builder-card__info"><div><small>{card.color} · {card.rarity}</small><strong>{card.name}</strong><span>{card.version || `Carta #${card.number}`}</span></div><button type="button" onClick={() => addCard(card)} disabled={limit !== null && quantity >= limit}>+</button></div></article>; })}</div>}
+            {loading ? <div className="builder-loading">Carregando cartas…</div> : <div className="builder-card-grid">{cards.map((card) => { const limit = activeFormat?.maximum_copies === null ? null : Math.max(activeFormat?.maximum_copies ?? 4, card.max_copies_in_deck || 4); return <BuilderCard key={card.id} card={card} quantity={groupQuantity(card)} limit={limit} onOpen={() => setSelectedCard(card)} onAdd={() => addCard(card)} />; })}</div>}
           </> : <div className="deck-import"><div className="deck-import__intro"><span>Importar deck</span><h2>Traga sua lista para o Jogar TCG</h2><p>Importe TXT, CSV, JSON, DEK, listas copiadas de outros sites ou um link público do Dreamborn.ink.</p></div><label className="deck-url-input"><span>Link público do Dreamborn.ink</span><input type="url" value={importUrl} onChange={(event) => setImportUrl(event.target.value)} placeholder="https://dreamborn.ink/decks/..." /></label><div className="import-divider"><span>ou escolha um arquivo</span></div><label className="file-drop" htmlFor="deck-file"><input id="deck-file" type="file" accept=".txt,.csv,.json,.dek" onChange={(event) => void readFile(event)} /><b>↑</b><strong>Escolher arquivo do dispositivo</strong><span>TXT, CSV, JSON ou DEK · até 2 MB</span></label><div className="import-divider"><span>ou cole sua lista</span></div><label className="deck-list-input"><span>Lista do deck</span><textarea rows={9} value={importText} onChange={(event) => setImportText(event.target.value)} placeholder={'4 HeiHei - Boat Snack\n4 Ariel - Spectacular Singer'} /></label><button className="button button--primary" type="button" disabled={importing} onClick={() => void analyzeImport()}>{importing ? 'Analisando…' : 'Analisar lista'}</button></div>}
         </section>
         <aside className="deck-panel"><div className="deck-panel__header"><div><span>{activeFormat?.label || 'Seu deck'}</span><strong>{name || 'Sem nome'}</strong></div><b className={!validationIssues.length ? 'complete' : ''}>{totalCards}<small>/{minimumCards}</small></b></div><div className="deck-panel__progress"><i style={{ width: `${Math.min((totalCards / minimumCards) * 100, 100)}%` }} /></div>
-          {entries.length ? <div className="deck-list">{entries.map(({ card, quantity }) => { const limit = activeFormat?.maximum_copies === null ? null : Math.max(activeFormat?.maximum_copies ?? 4, card.max_copies_in_deck || 4); return <div className="deck-list__item" key={card.id}><img src={card.image.thumbnail || card.image.full || ''} alt="" /><div><strong>{card.name}</strong><span>{card.cost ?? '—'} tinta · {limit === null ? 'sem limite de cópias' : `limite ${limit}`}</span></div><div className="quantity-control"><button onClick={() => removeCard(card.id)}>−</button><b>{quantity}</b><button onClick={() => addCard(card)} disabled={limit !== null && quantity >= limit}>+</button></div></div>; })}</div> : <div className="deck-empty"><span>◇</span><strong>Seu deck está vazio</strong><p>Use o botão “+” nas cartas ou importe uma lista.</p></div>}
+          {entries.length ? <div className="deck-list">{entries.map(({ card, quantity }) => { const limit = activeFormat?.maximum_copies === null ? null : Math.max(activeFormat?.maximum_copies ?? 4, card.max_copies_in_deck || 4); return <div className="deck-list__item" key={card.id}><img src={card.image.thumbnail || card.image.full || ''} alt="" /><div><strong>{card.name}</strong><span>{card.cost ?? '—'} tinta · {card.rarity} · {limit === null ? 'sem limite de cópias' : `limite ${limit} somando as artes`}</span></div><div className="quantity-control"><button onClick={() => removeCard(card.id)}>−</button><b>{quantity}</b><button onClick={() => addCard(card)} disabled={limit !== null && groupQuantity(card) >= limit}>+</button></div></div>; })}</div> : <div className="deck-empty"><span>◇</span><strong>Seu deck está vazio</strong><p>Use o botão “+” nas cartas ou importe uma lista.</p></div>}
           <div className="deck-panel__summary"><span>Cartas diferentes <b>{entries.length}</b></span><span>Cores <b>{deckColors.length || '—'}</b></span></div><button className="button button--primary button--large" type="button" disabled={saving} onClick={() => void handleSave()}>{saving ? 'Salvando…' : currentId ? 'Salvar alterações' : 'Salvar deck'}</button>{currentId && <div className="deck-export"><span>Exportar</span>{(['txt', 'csv', 'json', 'dek'] as const).map((type) => <button type="button" key={type} onClick={() => void exportCurrent(type)}>{type.toUpperCase()}</button>)}</div>}{notice && <div className={`feedback feedback--${noticeType}`} role="status">{notice}</div>}</aside>
       </div>
       {selectedCard && (
@@ -178,18 +208,18 @@ export function DeckBuilderPage() {
           <section className="card-preview__dialog card-preview__dialog--complete" role="dialog" aria-modal="true" aria-label={`Detalhes de ${selectedCard.full_name}`} onMouseDown={(event) => event.stopPropagation()}>
             <button className="card-preview__close" type="button" onClick={() => setSelectedCard(null)} aria-label="Fechar detalhes">×</button>
             <div className="card-preview__visual">
-              <img src={selectedCard.image.full || selectedCard.image.thumbnail || ''} alt={`Carta original ${selectedCard.full_name}`} />
-              <small>A imagem permanece no idioma original.</small>
+              <CardGallery printings={cardPrintingsOf(selectedDetail ?? selectedCard)} alt={`Carta original ${selectedCard.full_name}`} selectedId={modalPrintingId ?? selectedCard.id} onSelect={(printing) => setModalPrintingId(printing.id)} />
+              <small>{cardPrintingsOf(selectedDetail ?? selectedCard).length > 1 ? 'Escolha a arte que vai para o deck. ' : ''}A imagem permanece no idioma original.</small>
             </div>
             <div className="card-preview__content">
               {!selectedDetail && !detailError && <div className="detail-skeleton">Carregando tradução e ficha completa…</div>}
               {detailError && <div className="feedback feedback--error">{detailError}</div>}
               {selectedDetail && <>
-                <span className="eyebrow"><i /> Coleção {selectedDetail.set_code} · Carta #{selectedDetail.number ?? '—'}</span>
+                <span className="eyebrow"><i /> Coleção {modalView?.set_code} · Carta #{modalView?.number ?? '—'}</span>
                 <h2>{selectedDetail.pt_br.full_name || selectedDetail.full_name}</h2>
                 <p className="card-preview__original-name">Original: {selectedDetail.original.full_name}</p>
                 <div className="detail-tags card-preview__tags">
-                  <span>{selectedDetail.color}</span><span>{selectedDetail.type}</span><span>{selectedDetail.rarity}</span>
+                  <span>{selectedDetail.color}</span><span>{selectedDetail.type}</span><span>{modalView?.rarity}</span>
                   {selectedDetail.inkwell && <span>Tinteiro</span>}
                 </div>
                 <div className="card-preview__stats">
@@ -219,10 +249,20 @@ export function DeckBuilderPage() {
                   <p>{selectedDetail.original.full_text ? <CardText text={selectedDetail.original.full_text} /> : 'This card has no rules text.'}</p>
                   {selectedDetail.original.flavor_text && <blockquote>{selectedDetail.original.flavor_text}</blockquote>}
                 </details>
-                <button className="button button--primary button--large" type="button" disabled={(deck[selectedDetail.id]?.quantity ?? 0) >= selectedDetail.max_copies_in_deck} onClick={() => { addCard(selectedDetail); setSelectedCard(null); }}>
-                  {(deck[selectedDetail.id]?.quantity ?? 0) >= selectedDetail.max_copies_in_deck ? `Limite de ${selectedDetail.max_copies_in_deck} cópia(s)` : 'Adicionar ao deck'}
-                </button>
-                <Link to={`/cartas/${selectedDetail.id}`}>Abrir página pública da carta →</Link>
+                {(() => {
+                  const printings = cardPrintingsOf(selectedDetail);
+                  const chosen = withPrinting(selectedDetail, printings.find((printing) => printing.id === modalPrintingId));
+                  const limit = activeFormat?.maximum_copies === null ? Number.POSITIVE_INFINITY : Math.max(activeFormat?.maximum_copies ?? 4, selectedDetail.max_copies_in_deck || 4);
+                  const inDeck = groupQuantity(selectedDetail);
+                  const full = inDeck >= limit;
+                  return <>
+                    {inDeck > 0 && <p className="card-preview__in-deck">No deck: {inDeck} cópia(s) desta carta{printings.length > 1 ? `, ${deck[chosen.id]?.quantity ?? 0} com esta arte` : ''}.</p>}
+                    <button className="button button--primary button--large" type="button" disabled={full} onClick={() => { addCard(chosen); setSelectedCard(null); }}>
+                      {full ? `Limite de ${limit} cópia(s) somando as artes` : printings.length > 1 ? 'Adicionar esta arte ao deck' : 'Adicionar ao deck'}
+                    </button>
+                  </>;
+                })()}
+                <Link to={`/cartas/${modalView?.id ?? selectedDetail.id}`}>Abrir página pública da carta →</Link>
               </>}
             </div>
           </section>

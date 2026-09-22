@@ -49,5 +49,46 @@ function cardSummary(array $row, string $language): array
         ],
         'translation_status' => $row['translation_status'],
         'max_copies_in_deck' => $row['max_copies_in_deck'] !== null ? (int) $row['max_copies_in_deck'] : 4,
+        'print_group_id' => isset($row['print_group_id']) ? (int) $row['print_group_id'] : (int) $row['source_id'],
     ];
+}
+
+/**
+ * Artes de cada carta: todas as impressoes do mesmo grupo (mesmo nome completo),
+ * a principal primeiro. Regras e textos sao os mesmos; mudam arte, colecao e raridade.
+ *
+ * @param int[] $groupIds
+ * @return array<int, list<array>> print_group_id => impressoes
+ */
+function cardPrintings(PDO $pdo, array $groupIds, string $language, ?string $preferredSet = null): array
+{
+    $groupIds = array_values(array_unique(array_filter(array_map('intval', $groupIds))));
+    if ($groupIds === []) return [];
+    $placeholders = implode(',', array_fill(0, count($groupIds), '?'));
+    $statement = $pdo->prepare(
+        "SELECT source_id, print_group_id, set_code, number, full_identifier, rarity_en, rarity_pt_br,
+                image_full_url, image_thumbnail_url
+         FROM lorcana_cards WHERE active = 1 AND print_group_id IN ({$placeholders})
+         ORDER BY print_group_id, (source_id = print_group_id) DESC, source_id"
+    );
+    $statement->execute($groupIds);
+    $groups = [];
+    foreach ($statement->fetchAll() as $row) {
+        $groups[(int) $row['print_group_id']][] = [
+            'id' => (int) $row['source_id'],
+            'set_code' => $row['set_code'],
+            'number' => $row['number'] !== null ? (int) $row['number'] : null,
+            'identifier' => $row['full_identifier'],
+            'rarity' => localized($row['rarity_en'], $row['rarity_pt_br'], $language),
+            'image' => ['full' => $row['image_full_url'], 'thumbnail' => $row['image_thumbnail_url']],
+        ];
+    }
+    if ($preferredSet !== null && $preferredSet !== '') {
+        // Filtrando por colecao, a arte daquela colecao abre a galeria.
+        foreach ($groups as &$printings) {
+            usort($printings, static fn(array $a, array $b): int => (int) ($b['set_code'] === $preferredSet) <=> (int) ($a['set_code'] === $preferredSet));
+        }
+        unset($printings);
+    }
+    return $groups;
 }
