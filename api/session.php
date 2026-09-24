@@ -80,6 +80,11 @@ function avatarPublicUrl(?string $storedPath): ?string
     return (apiBasePath() ?: '') . '/' . ltrim($storedPath, '/');
 }
 
+function playerCanAccessShop(array $row): bool
+{
+    return strtolower(trim((string) ($row['email'] ?? ''))) === 'erikprimao@gmail.com';
+}
+
 function publicUser(array $row): array
 {
     return [
@@ -89,6 +94,8 @@ function publicUser(array $row): array
         'email' => $row['email'],
         'foto_perfil' => avatarPublicUrl($row['foto_perfil'] ?? null),
         'beta_tester' => (bool) ($row['beta_tester'] ?? false),
+        'adventure_access' => (bool) ($row['adventure_access'] ?? false),
+        'shop_access' => playerCanAccessShop($row),
     ];
 }
 

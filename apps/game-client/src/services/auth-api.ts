@@ -9,6 +9,9 @@ export interface AuthUser {
   email: string;
   foto_perfil: string | null;
   beta_tester: boolean;
+  // Must be supplied by the server after payment verification; absent means locked.
+  adventure_access?: boolean;
+  shop_access?: boolean;
 }
 
 export type RegisteredUser = AuthUser;

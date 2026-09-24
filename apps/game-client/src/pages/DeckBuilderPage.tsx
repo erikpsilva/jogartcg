@@ -1,4 +1,5 @@
 import { InkColors, InkColorSelect } from '../components/InkColors';
+import { DeckCosmetics } from '../components/Shop';
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -189,6 +190,7 @@ export function DeckBuilderPage() {
     <div className="deck-builder page-container">
       <header className="builder-heading"><div><span className="eyebrow"><i /> Deck Lab</span><h1>Monte seu deck.</h1><p>Explore, importe e salve sua lista. Rascunhos incompletos também ficam guardados.</p></div><div className="test-profile"><span className="test-profile__avatar">{user?.nome.charAt(0)}{user?.sobrenome.charAt(0)}</span><div><small>Conta conectada</small><strong>{user?.nome} {user?.sobrenome}</strong></div><Link to="/meus-decks">Meus decks</Link></div></header>
       <section className="deck-setup" aria-label="Configurações do deck">
+        <div style={{ gridColumn: '1 / -1' }}><DeckCosmetics deckId={currentId} /></div>
         <label><span>Nome do deck</span><input type="text" maxLength={100} value={name} onChange={(event) => setName(event.target.value)} /></label>
         <label><span>Formato</span><select value={format} onChange={(event) => setFormat(event.target.value as DeckFormatKey)}>{formats.map((item) => <option value={item.key} key={item.key}>{item.label} · mínimo {item.minimum_cards}</option>)}</select><small className="field-help">{activeFormat?.description}</small></label>
         <div className="deck-colors"><span>Cores escolhidas</span><div>{deckColors.length ? <InkColors colors={deckColors} /> : <small>Adicione cartas para definir as cores</small>}</div></div>

@@ -13,10 +13,14 @@ const inks: Record<string, [string, string]> = {
   ruby: [ruby, 'Rubi'], rubi: [ruby, 'Rubi'],
   sapphire: [sapphire, 'Safira'], safira: [sapphire, 'Safira'],
   steel: [steel, 'Aço'], aco: [steel, 'Aço'],
+  saphire: [sapphire, 'Safira'],
 };
 
 export function InkColors({ colors }: { colors: string | string[] | null | undefined }) {
-  const entries = [...new Set((Array.isArray(colors) ? colors : [colors || '']).flatMap(c => c.split(/\s*[-+/]\s*/)).filter(Boolean))];
+  const entries = [...new Map((Array.isArray(colors) ? colors : [colors || '']).flatMap(c => c.split(/\s*[-+/,]\s*/)).map(c => c.trim()).filter(Boolean).map(c => {
+    const key = c.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    return [inks[key]?.[1] || key, key] as const;
+  })).values()];
   return <span className="lorcana-inks">{entries.length ? entries.map(color => {
     const ink = inks[color.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()];
     return <span className="lorcana-ink" key={color}>{ink && <img src={ink[0]} alt="" width="30" height="34" />}<span>{ink?.[1] || color}</span></span>;

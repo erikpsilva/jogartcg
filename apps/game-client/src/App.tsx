@@ -1,4 +1,6 @@
 import { type ReactNode } from 'react';
+import { ShopPage } from './components/Shop';
+import { InventoryPage } from './pages/InventoryPage';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
 import { AppFooter } from './components/AppFooter';
@@ -14,7 +16,7 @@ import { GameTablePage } from './pages/GameTablePage';
 import { PlayLobbyPage } from './pages/PlayLobbyPage';
 import { BotGamePage } from './pages/BotGamePage';
 import { OnlineGamePage } from './pages/OnlineGamePage';
-import { GameplayPage } from './pages/GameplayPage';
+import { AdventureLandingPage, AdventureMapPage } from './pages/AdventureLandingPage';
 import { PlayAvailability, useSiteSettings } from './settings/SiteSettingsContext';
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -25,10 +27,16 @@ function ProtectedRoute({ children }: { children: ReactNode }) {
   return children;
 }
 
+function ShopAccessRoute() {
+  const { user, loading } = useAuth();
+  if (loading) return <div className="route-loading page-container">Verificando sua conta…</div>;
+  return user?.shop_access ? <ShopPage /> : <Navigate to="/cartas" replace />;
+}
+
 export function App() {
   const location = useLocation();
   const { playEnabled, loading } = useSiteSettings();
-  const isGameTable = playEnabled && !loading && (['/jogar/bot', '/jogar/mesa-teste'].includes(location.pathname) || location.pathname.startsWith('/jogar/online/'));
+  const isGameTable = location.pathname === '/gameplay/mapa' || (playEnabled && !loading && (['/jogar/bot', '/jogar/mesa-teste'].includes(location.pathname) || location.pathname.startsWith('/jogar/online/')));
   return (
     <div className={`app-shell ${isGameTable ? 'app-shell--game' : ''}`}>
       {!isGameTable && <AppHeader />}
@@ -36,10 +44,14 @@ export function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/cartas" replace />} />
           <Route path="/cartas" element={<CatalogPage />} />
-          <Route path="/gameplay" element={<GameplayPage />} />
+          <Route path="/loja" element={<ShopAccessRoute />} />
+          <Route path="/gameplay" element={<AdventureLandingPage />} />
+          <Route path="/gameplay/mapa" element={<AdventureMapPage />} />
           <Route path="/cartas/:cardId" element={<CardDetailPage />} />
           <Route path="/meus-decks" element={<ProtectedRoute><MyDecksPage /></ProtectedRoute>} />
           <Route path="/meus-dados" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
+          <Route path="/inventario" element={<ProtectedRoute><InventoryPage /></ProtectedRoute>} />
+          <Route path="/meus-personagens" element={<Navigate to="/inventario" replace />} />
           <Route path="/decks" element={<Navigate to="/meus-decks" replace />} />
           <Route path="/decks/novo" element={<ProtectedRoute><DeckBuilderPage /></ProtectedRoute>} />
           <Route path="/decks/:deckId" element={<ProtectedRoute><DeckBuilderPage /></ProtectedRoute>} />

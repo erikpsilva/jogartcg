@@ -13,4 +13,25 @@
 .starter-content .starter-ink-options button { background: #10141b; color: #eee; padding: 8px; border-color: #465064; }
 .starter-content .starter-ink-options button[aria-pressed=true] { border-color: #f5c518; background: #443819; }
 @media(max-width:600px) { .lorcana-inks { gap: 8px; } .lorcana-inks .lorcana-ink img { width: 25px; height: 29px; } }
-
+/* Compact ink controls; keep paired inks on one row inside filter options. */
+.lorcana-inks, .starter-content .lorcana-inks { gap: 8px; }
+.lorcana-inks .lorcana-ink img, .starter-content .lorcana-inks .lorcana-ink img { width: 22px; height: 25px; }
+.lorcana-inks .lorcana-ink, .starter-content .lorcana-inks .lorcana-ink { gap: 3px; }
+.deck-colors > div { min-height: 46px; height: auto; padding: 6px 10px; display: flex; align-items: center; }
+.ink-color-select > summary { box-sizing: border-box; display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 44px; padding: 6px 12px; list-style: none; }
+.ink-color-select > summary::-webkit-details-marker { display: none; }
+.ink-color-select > summary::after { content: '⌄'; flex: 0 0 auto; color: #aab5c7; }
+.ink-color-select > summary .lorcana-inks { flex-wrap: nowrap; }
+.ink-color-select > summary .lorcana-ink { flex-direction: row; gap: 4px; }
+.ink-color-select > summary .lorcana-ink img { width: 18px; height: 22px; }
+.ink-color-select .ink-color-options { top: calc(100% + 6px); width: 280px; max-width: calc(100vw - 48px); max-height: 300px; padding: 8px; gap: 6px; box-sizing: border-box; }
+.ink-color-select .ink-color-options > button { display: flex; justify-content: center; align-items: center; min-height: 56px; padding: 7px 5px; margin: 0; }
+.ink-color-select .ink-color-options > button:first-child { grid-column: 1 / -1; min-height: 36px; }
+.ink-color-select .ink-color-options .lorcana-inks { display: inline-flex; flex-direction: row; flex-wrap: nowrap; gap: 12px; }
+.ink-color-select .ink-color-options .lorcana-ink { display: inline-flex; flex-direction: column; }
+.ink-color-select summary:focus-visible, .ink-color-options > button:focus-visible { outline: 2px solid #f5c518; outline-offset: 2px; }
+.ink-color-options > button:hover { border-color: #b99646; background: #24231c; }
+@media(max-width:600px) {
+ .lorcana-inks .lorcana-ink img { width: 20px; height: 23px; }
+ .ink-color-select .ink-color-options { width: 250px; }
+}

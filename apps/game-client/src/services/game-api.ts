@@ -3,6 +3,7 @@ import type { CardDetail } from './catalog-api';
 import type { SavedDeckSummary } from './deck-api';
 
 export interface GameDeck extends SavedDeckSummary {
+  cosmetics?: { playmat: string | null; sleeve: string | null };
   cards: Array<{ quantity: number; card: CardDetail }>;
 }
 

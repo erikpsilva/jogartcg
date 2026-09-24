@@ -1,4 +1,5 @@
 import { InkColors } from '../components/InkColors';
+import { DeckCosmeticThumbs } from '../components/Shop';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -41,6 +42,7 @@ export function MyDecksPage() {
       ) : (
         <div className="saved-decks-grid">{decks.map((deck) => (
           <article className="saved-deck-card" key={deck.id}>
+            <DeckCosmeticThumbs deckId={deck.id} />
             <span className={`deck-status deck-status--${deck.status}`}>{deck.status === 'valido' ? 'Deck valido' : 'Rascunho'}</span>
             <h2>{deck.name}</h2><p>{deck.total_cards} cartas · <InkColors colors={deck.colors} /></p><small>{deck.validation.format?.label || deck.format}</small>
             {!deck.validation.valid && deck.validation.issues[0] && <small>{deck.validation.issues[0]}</small>}

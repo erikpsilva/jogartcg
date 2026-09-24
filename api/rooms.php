@@ -104,7 +104,7 @@ function storeRefereeResult(PDO $pdo, array $match, array $result, ?int $seat, s
         $revision,
         $summary['decisionSeat'],
         $summary['winnerSeat'],
-        $finished ? ($type === 'abandono' ? 'abandono' : ($summary['finishReason'] ?? 'fim')) : null,
+        $finished ? (in_array($type, ['abandono', 'inatividade'], true) ? $type : ($summary['finishReason'] ?? 'fim')) : null,
         $finished ? 'encerrada' : 'em_andamento',
         $finished ? 'encerrada' : 'em_andamento',
         (int) $match['id'],
@@ -112,7 +112,7 @@ function storeRefereeResult(PDO $pdo, array $match, array $result, ?int $seat, s
     $pdo->prepare('INSERT INTO partida_eventos (partida_id, revisao, assento, tipo, acao_json) VALUES (?, ?, ?, ?, ?)')
         ->execute([(int) $match['id'], $revision, $seat, $type, $action === null ? null : json_encode($action, JSON_UNESCAPED_UNICODE)]);
 
-    if ($finished) closeRoom($pdo, (int) $match['sala_id'], $type === 'abandono' ? 'abandono' : 'fim_de_jogo');
+    if ($finished) closeRoom($pdo, (int) $match['sala_id'], in_array($type, ['abandono', 'inatividade'], true) ? $type : 'fim_de_jogo');
     else bumpRoomRevision($pdo, (int) $match['sala_id']);
     return $revision;
 }
@@ -133,6 +133,9 @@ function concedeSeat(PDO $pdo, array $match, int $seat, string $type): void
  */
 function sweepRooms(PDO $pdo): void
 {
+    // O prazo de jogada tem prioridade sobre a limpeza de desconexoes.
+    $inactive = $pdo->query("SELECT p.sala_id FROM partidas p JOIN salas s ON s.id = p.sala_id WHERE s.status = 'em_jogo' AND p.status = 'em_andamento' AND p.updated_at <= NOW() - INTERVAL 120 SECOND")->fetchAll(PDO::FETCH_COLUMN);
+    foreach ($inactive as $roomId) expireInactiveMatch($pdo, (int) $roomId);
     // Lobbies que passaram do prazo sem comecar.
     $expired = $pdo->query("SELECT id FROM salas WHERE status = 'aguardando' AND expira_em < NOW()")->fetchAll(PDO::FETCH_COLUMN);
     foreach ($expired as $roomId) {
@@ -206,6 +209,7 @@ function sweepRooms(PDO $pdo): void
 }
 
 const ROOM_CLOSED_MESSAGES = [
+    'inatividade' => 'A partida terminou: dois minutos sem uma jogada. O oponente venceu.',
     'expirada' => 'A sala expirou por inatividade.',
     'abandonada' => 'O criador saiu e a sala foi fechada.',
     'cancelada' => 'A sala foi fechada pelo criador.',
@@ -214,10 +218,26 @@ const ROOM_CLOSED_MESSAGES = [
 ];
 
 /** Visao publica da sala para um membro. Nunca inclui e-mail, CPF ou decks do outro. */
+function expireInactiveMatch(PDO $pdo, int $roomId): void
+{
+    $pdo->beginTransaction();
+    try {
+        $q=$pdo->prepare('SELECT status FROM salas WHERE id=? FOR UPDATE');$q->execute([$roomId]);
+        if($q->fetchColumn()==='em_jogo') {
+            $q=$pdo->prepare("SELECT *, (updated_at <= NOW() - INTERVAL 120 SECOND) AS timed_out FROM partidas WHERE sala_id=? FOR UPDATE");$q->execute([$roomId]);$match=$q->fetch();
+            if($match && $match['status']==='em_andamento' && $match['timed_out'] && in_array((int)$match['assento_decisao'],[1,2],true)) concedeSeat($pdo,$match,(int)$match['assento_decisao'],'inatividade');
+        }
+        $pdo->commit();
+    } catch(Throwable $e) {if($pdo->inTransaction())$pdo->rollBack();throw $e;}
+}
+
 function roomPayload(PDO $pdo, int $roomId, int $userId, bool $includeView = false): array
 {
+    requireRoomMembership($pdo, $roomId, $userId);
+    expireInactiveMatch($pdo, $roomId);
     $membership = requireRoomMembership($pdo, $roomId, $userId);
     $room = $membership['room'];
+    if ($room['status'] === 'encerrada') $includeView = true;
     $mySeat = (int) $membership['seat']['assento'];
 
     $seats = $pdo->prepare(
@@ -244,6 +264,7 @@ function roomPayload(PDO $pdo, int $roomId, int $userId, bool $includeView = fal
         ];
         // Cores do deck so depois do inicio: antes disso nada do deck adversario sai do servidor.
         if ($room['status'] !== 'aguardando') {
+            $players[count($players) - 1]['cosmetics'] = battleCosmetics($pdo, (int) $row['deck_id']);
             $players[count($players) - 1]['colors'] = json_decode((string) ($row['cores_json'] ?? '[]'), true) ?: [];
         }
         if ($isYou) {
@@ -255,7 +276,7 @@ function roomPayload(PDO $pdo, int $roomId, int $userId, bool $includeView = fal
         }
     }
 
-    $matchStatement = $pdo->prepare('SELECT id, revisao, status, assento_decisao, vencedor_assento, motivo_fim' . ($includeView ? ', visao_assento' . $mySeat . ' AS visao' : '') . ' FROM partidas WHERE sala_id = ?');
+    $matchStatement = $pdo->prepare('SELECT id, revisao, status, assento_decisao, vencedor_assento, motivo_fim, UNIX_TIMESTAMP(updated_at) + 120 AS action_deadline' . ($includeView ? ', visao_assento' . $mySeat . ' AS visao' : '') . ' FROM partidas WHERE sala_id = ?');
     $matchStatement->execute([$roomId]);
     $match = $matchStatement->fetch() ?: null;
 
@@ -276,6 +297,8 @@ function roomPayload(PDO $pdo, int $roomId, int $userId, bool $includeView = fal
             'decision_seat' => $match['assento_decisao'] !== null ? (int) $match['assento_decisao'] : null,
             'winner_seat' => $match['vencedor_assento'] !== null ? (int) $match['vencedor_assento'] : null,
             'finish_reason' => $match['motivo_fim'],
+            'action_deadline' => (int) $match['action_deadline'],
+            'server_time' => time(),
         ] : null,
     ];
     if ($includeView && $match) $payload['view'] = json_decode((string) $match['visao'], true);
@@ -432,6 +455,7 @@ function pollRoom(PDO $pdo, int $roomId, int $userId): never
     $lastTouch = 0.0;
     $revisions = $pdo->prepare('SELECT s.revisao, p.revisao AS partida FROM salas s LEFT JOIN partidas p ON p.sala_id = s.id WHERE s.id = ?');
     do {
+        expireInactiveMatch($pdo, $roomId);
         if (microtime(true) - $lastTouch >= 10) { touchSeat($pdo, $roomId, $userId); $lastTouch = microtime(true); }
         $revisions->execute([$roomId]);
         $current = $revisions->fetch();
@@ -609,6 +633,13 @@ function handleRoomRoutes(PDO $pdo, array $segments, string $method): void
             if (!$match || $membership['room']['status'] !== 'em_jogo' || $match['status'] !== 'em_andamento') {
                 $pdo->rollBack();
                 roomError('match_not_active', 'Nao ha partida em andamento nesta sala.', 409);
+            }
+            $deadline=$pdo->prepare('SELECT updated_at <= NOW() - INTERVAL 120 SECOND FROM partidas WHERE id=?');
+            $deadline->execute([$match['id']]);
+            if ($deadline->fetchColumn() && in_array((int)$match['assento_decisao'],[1,2],true)) {
+                concedeSeat($pdo,$match,(int)$match['assento_decisao'],'inatividade');
+                $pdo->commit();
+                respond(['success'=>true,'data'=>roomPayload($pdo,$roomId,$userId,true)]);
             }
             if ((int) $match['revisao'] !== $revision) {
                 // Envio duplicado ou baseado em uma mesa desatualizada: devolve a atual.

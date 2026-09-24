@@ -56,6 +56,7 @@ function loadGameDeck(PDO $pdo, int $deckId, int $userId, string $language): ?ar
     $deck['status'] = $validated['validation']['valid'] ? 'valido' : 'rascunho';
     $deck['total_cards'] = $validated['total'];
     $deck['colors'] = $validated['colors'];
+    $deck['cosmetics'] = battleCosmetics($pdo, $deckId);
     $deck['validation'] = $validated['validation'];
     $deck['cards'] = array_map(static fn(array $card): array => [
         'quantity' => (int) $card['quantidade'], 'card' => gameCardDetail($card, $language),

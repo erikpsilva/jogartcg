@@ -52,6 +52,7 @@ export function BotGamePage() {
   }
 
   return <MatchTable
+    cosmetics={match.cosmetics}
     state={state} legal={legal} inkColors={match.inkColors} deckNames={match.deckNames}
     opponentName="Bot" opponentThinking="Bot pensando…" opponentBanner="O BOT ESTÁ JOGANDO"
     boardLabel="Mesa contra o bot" error={error} onDismissError={() => setError('')} onAction={dispatch}

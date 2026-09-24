@@ -28,7 +28,7 @@ function adminUrl(string $route = '', array $params = []): string
     $url = ADMIN_BASE_URL . '/index.php?p=' . rawurlencode(trim($route, '/'));
     return $params === [] ? $url : $url . '&' . http_build_query($params);
 }
-$allowedPages = ['login', 'inicio', 'meusdados', 'cadastrarusuario', 'configuracoes', 'usuarios-site', 'logout'];
+$allowedPages = ['login', 'inicio', 'meusdados', 'cadastrarusuario', 'configuracoes', 'produtos', 'usuarios-site', 'logout'];
 if (!in_array($subRoute, $allowedPages, true)) {
     http_response_code(404);
     echo 'Página administrativa não encontrada.';

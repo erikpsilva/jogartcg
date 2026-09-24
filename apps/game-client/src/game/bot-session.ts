@@ -4,6 +4,7 @@ import type { GameDeck } from '../services/game-api';
 export type { DisplayGameCard };
 export type InkColor = 'amber' | 'amethyst' | 'emerald' | 'ruby' | 'sapphire' | 'steel';
 export interface BotMatch {
+  cosmetics?: { player?: GameDeck['cosmetics']; bot?: GameDeck['cosmetics'] };
   version: 1;
   playerName: string;
   deckNames: { player: string; bot: string };
@@ -56,6 +57,7 @@ export function gameDeckCards(deck: GameDeck): DisplayGameCard[] {
 export function beginBotMatch(userId: number, playerName: string, playerDeck: GameDeck, botDeck: GameDeck): BotMatch {
   const match: BotMatch = {
     version: 1, playerName, deckNames: { player: playerDeck.name, bot: botDeck.name }, inkColors: chooseInkColors(playerDeck, botDeck),
+    cosmetics: { player: playerDeck.cosmetics, bot: botDeck.cosmetics },
     state: createGame({ decks: { player: gameDeckCards(playerDeck), bot: gameDeckCards(botDeck) }, seed: crypto.getRandomValues(new Uint32Array(1))[0] }),
     updatedAt: new Date().toISOString(),
   };

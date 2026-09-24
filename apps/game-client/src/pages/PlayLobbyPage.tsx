@@ -9,13 +9,15 @@ import { beginBotMatch, loadBotMatch } from '../game/bot-session';
 import { chooseRoomDeck, createRoom, getCurrentRoom, getRoom, joinRoom, leaveRoom, pollRoom, RoomApiError, setRoomReady, type Room } from '../services/room-api';
 import { trainingDecks } from '../game/training-decks';
 
+const trainingFormats = ['core', 'infinity', 'preconstructed'];
+
 function DeckCheck({ deck, label }: { deck: GameDeck; label: string }) {
   const unsupported = deck.cards.filter(({ card }) => !compileCardRules(card).supported);
   return <article className="match-deck-check">
     <span>{label}</span><h3>{deck.name}</h3>
     <p>{deck.total_cards} cartas · <InkColors colors={deck.colors} /></p>
     {!deck.validation.valid && <div className="feedback feedback--error">{deck.validation.issues.join(' ')}</div>}
-    {!['core', 'infinity'].includes(deck.format) && <p>O treino atual usa decks Core ou Infinity. Outros formatos terão preparação própria.</p>}
+    {!trainingFormats.includes(deck.format) && <p>O treino aceita decks Core, Infinity e Pré-construídos. Outros formatos terão preparação própria.</p>}
     {unsupported.length > 0 ? <details open><summary>{unsupported.length} carta(s) ainda precisam de habilidades implementadas</summary>
       <p>O deck está liberado para teste. As regras reconhecidas funcionarão normalmente; somente os efeitos abaixo ainda serão ignorados.</p>
       <ul>{unsupported.map(({ card }) => <li key={card.id}><Link to={`/cartas/${card.id}`}>{card.full_name}</Link><small>{compileCardRules(card).unsupported.join(' · ')}</small></li>)}</ul>
@@ -180,7 +182,7 @@ export function PlayLobbyPage() {
     catch { setCodeCopied(false); }
   }
 
-  const ready = prepared?.every((deck) => ['core', 'infinity'].includes(deck.format) && deck.validation.valid);
+  const ready = prepared?.every((deck) => trainingFormats.includes(deck.format) && deck.validation.valid);
   async function quickTraining() {
     if (!user || training) return;
     setTraining(true); setError('');

@@ -18,11 +18,13 @@ header('Content-Type: text/html; charset=utf-8');
   <title>Starter Deck · Jogar TCG</title>
   <link rel="icon" href="<?= esc($base) ?>/client/brand/favicon.png">
   <link rel="stylesheet" href="<?= esc($base) ?>/client/assets/index-B_8ML6EN.css">
-  <link rel="stylesheet" href="<?= esc($base) ?>/starter-decks/style.css?v=2">
+  <link rel="stylesheet" href="<?= esc($base) ?>/starter-decks/style.css?v=3">
   <link rel="manifest" href="<?= esc($base) ?>/client/manifest.webmanifest">
   <script type="module" src="<?= esc($base) ?>/client/assets/shared-header-v1.js"></script>
   <link rel="stylesheet" href="<?= esc($base) ?>/client/ink-colors.css?v=1">
-  <script src="<?= esc($base) ?>/starter-decks/app.js?v=3" defer></script>
+  <link rel="stylesheet" href="<?= esc($base) ?>/client/shop.css?v=1">
+  <link rel="stylesheet" href="<?= esc($base) ?>/client/site-shell.css?v=1">
+  <script src="<?= esc($base) ?>/starter-decks/app.js?v=5" defer></script>
 </head>
 <body data-base="<?= esc($base) ?>">
   <div id="shared-site-header" data-client-base="<?= esc($base) ?>/client/"></div>
@@ -61,7 +63,7 @@ header('Content-Type: text/html; charset=utf-8');
     <div class="dialog-header"><div><p class="eyebrow" id="detail-set"></p><h2 id="detail-title">Starter Deck</h2></div><button class="close secondary" data-close="detail" aria-label="Fechar detalhes">×</button></div>
     <div id="detail-content"></div>
   </dialog>
-  <dialog id="zoom" aria-label="Carta ampliada"><button class="close secondary" data-close="zoom" aria-label="Fechar carta ampliada">×</button><img id="zoom-image" alt=""></dialog>
+  <dialog id="zoom" aria-label="Carta ampliada"><button class="close secondary" data-close="zoom" aria-label="Fechar carta ampliada">×</button><div class="zoom-layout"><img id="zoom-image" alt=""><section id="zoom-description" aria-label="Descrição da carta"></section></div></dialog>
   <dialog id="login" aria-labelledby="login-title"><button class="close secondary" data-close="login" aria-label="Fechar">×</button><h2 id="login-title">Salve seus starters favoritos</h2><p>Entre ou cadastre-se para adicionar este deck à sua coleção. A lista ficará disponível em Meus Decks.</p><div class="starter-actions"><a class="button" id="login-link">Entrar</a><a class="button secondary" id="register-link">Criar conta</a></div></dialog>
   </div>
 </body>

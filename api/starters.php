@@ -27,7 +27,10 @@ function starterPayload(array $starter, array $rows, bool $detail = false): arra
     $payload['available'] = $missing === [] && $payload['total_cards'] === 60;
     $payload['missing_cards'] = $missing;
     if ($detail) $payload['cards'] = array_map(static fn(array $entry): array => $entry + [
-        'card' => isset($rows[$entry['card_id']]) ? cardSummary($rows[$entry['card_id']], 'pt-BR') : null,
+        'card' => isset($rows[$entry['card_id']]) ? cardSummary($rows[$entry['card_id']], 'pt-BR') + [
+            'text_pt_br' => $rows[$entry['card_id']]['full_text_pt_br'] ?? null,
+            'text_en' => $rows[$entry['card_id']]['full_text_en'] ?? null,
+        ] : null,
     ], $starter['cards']);
     return $payload;
 }

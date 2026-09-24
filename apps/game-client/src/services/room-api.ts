@@ -4,6 +4,7 @@ import { apiUrl } from '../config/api';
 export type RoomStatus = 'aguardando' | 'em_jogo' | 'encerrada';
 
 export interface RoomPlayer {
+  cosmetics?: { playmat: string | null; sleeve: string | null };
   seat: 1 | 2;
   name: string;
   avatar: string | null;
@@ -39,6 +40,8 @@ export interface Room {
     decision_seat: 1 | 2 | null;
     winner_seat: 1 | 2 | null;
     finish_reason: string | null;
+    action_deadline?: number;
+    server_time?: number;
   } | null;
   view?: SeatView;
 }

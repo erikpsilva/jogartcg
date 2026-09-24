@@ -22,6 +22,7 @@
                 <a href="<?= adminUrl('usuarios-site') ?>" class="sidebar__link <?= $subRoute === 'usuarios-site' ? 'sidebar__link--active' : '' ?>"><i class="fa-solid fa-users" aria-hidden="true"></i> Usuários do site</a>
             </li>
             <li class="sidebar__item">
+                <a href="<?= adminUrl('produtos') ?>" class="sidebar__link">◇ Produtos da loja</a>
                 <a href="<?= adminUrl('configuracoes') ?>" class="sidebar__link <?= $subRoute === 'configuracoes' ? 'sidebar__link--active' : '' ?>"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Configurações</a>
             </li>
             <li class="sidebar__item">

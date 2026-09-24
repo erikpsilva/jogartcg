@@ -26,9 +26,20 @@ export function OnlineGamePage() {
   const [offline, setOffline] = useState(false);
   // Latest revision on screen; responses older than it are ignored.
   const revisionRef = useRef(0);
+  const [secondsLeft, setSecondsLeft] = useState(120);
+  const deadlineRef = useRef<number | null>(null);
+  useEffect(() => {
+    const timer = window.setInterval(() => { if (deadlineRef.current !== null) setSecondsLeft(Math.max(0, Math.ceil((deadlineRef.current - Date.now()) / 1000))); }, 250);
+    return () => window.clearInterval(timer);
+  }, []);
 
   const accept = useCallback((next: Room) => {
+    if ((next.match?.revision ?? 0) < revisionRef.current) return;
     setRoom(next);
+    if (next.match?.action_deadline && next.match.server_time) {
+      deadlineRef.current = Date.now() + (next.match.action_deadline - next.match.server_time) * 1000;
+      setSecondsLeft(Math.max(0, next.match.action_deadline - next.match.server_time));
+    }
     const nextRevision = next.match?.revision ?? 0;
     if (next.view && nextRevision >= revisionRef.current) {
       revisionRef.current = nextRevision;
@@ -107,13 +118,15 @@ export function OnlineGamePage() {
   const closedWithoutResult = room.status === 'encerrada' && view.state.phase !== 'finished';
 
   return <MatchTable
+    cosmetics={{ player: me?.cosmetics, bot: opponent?.cosmetics }}
     state={view.state} legal={view.legal} inkColors={inkColors}
+    actionTimer={view.state.phase !== 'finished' && <small className="match-action-timer" title="Tempo para quem precisa realizar a próxima ação"> · {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, '0')}</small>}
     deckNames={{ player: room.you?.deck?.name ?? 'Seu deck', bot: `Deck de ${opponentName}` }}
     opponentName={opponentName} opponentThinking={`Vez de ${opponentName}…`} opponentBanner={`VEZ DE ${opponentName.toUpperCase()}`}
     opponentBadge={opponent && <small className={`table-player-card__presence ${opponent.connected ? 'is-online' : 'is-offline'}`}>{opponent.connected ? 'Conectado' : 'Reconectando…'}</small>}
     busy={busy || offline || closedWithoutResult} boardLabel={`Mesa contra ${opponentName}`}
     error={offline ? 'Conexão instável. Tentando reconectar…' : error} onDismissError={() => setError('')} onAction={dispatch}
-    finishedMessage={finishedByAbandon ? (view.state.winner === 'player' ? `${opponentName} se desconectou e não voltou a tempo.` : 'Você ficou desconectado por tempo demais e a partida foi encerrada.') : undefined}
+    finishedMessage={room.match?.finish_reason === 'inatividade' ? (view.state.winner === 'player' ? 'O adversário ficou 2 minutos sem jogar. Você venceu por inatividade.' : 'Você ficou 2 minutos sem jogar e perdeu por inatividade.') : finishedByAbandon ? (view.state.winner === 'player' ? `${opponentName} se desconectou e não voltou a tempo.` : 'Você ficou desconectado por tempo demais e a partida foi encerrada.') : undefined}
     exitDialog={(close, concede) => <><p>Você pode sair e voltar pela Arena. Se ficar mais de 3 minutos fora, a partida conta como abandono.</p><div className="match-actions"><button onClick={() => navigate('/jogar')}>Sair e voltar depois</button>{concede && <button onClick={concede}>Desistir da partida</button>}<button onClick={close}>Continuar jogando</button></div></>}
     finishedActions={(openLog) => <><button onClick={() => navigate('/jogar')}>Voltar à arena</button><button onClick={openLog}>Ver histórico</button></>}
     overlay={closedWithoutResult && <Dialog title="Partida encerrada"><p>{room.closed_message ?? 'A sala foi encerrada.'}</p><div className="match-actions"><button onClick={() => navigate('/jogar')}>Voltar à arena</button></div></Dialog>}

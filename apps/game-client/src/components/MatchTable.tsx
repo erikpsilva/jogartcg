@@ -30,10 +30,10 @@ export function Dialog({ title: heading, children, close }: { title: string; chi
   </div>;
 }
 
-function MatchCard({ entry, hidden = false, exhausted = false, className = '', style, legal, onClick }: { entry?: CardInstance; hidden?: boolean; exhausted?: boolean; className?: string; style?: CSSProperties; legal?: boolean; onClick?: () => void }) {
+function MatchCard({ back = backImage, entry, hidden = false, exhausted = false, className = '', style, legal, onClick }: { back?: string; entry?: CardInstance; hidden?: boolean; exhausted?: boolean; className?: string; style?: CSSProperties; legal?: boolean; onClick?: () => void }) {
   const faceDown = hidden || !entry;
   return <button type="button" style={style} className={`game-card ${faceDown ? 'game-card--back' : ''} ${entry?.exerted || exhausted ? 'game-card--exhausted' : ''} ${legal ? 'game-card--legal' : ''} ${className}`} onClick={onClick} disabled={!onClick} aria-label={faceDown ? `Carta virada para baixo${exhausted ? ', utilizada' : ''}` : title(entry!)}>
-    <img src={faceDown ? backImage : entry!.card.image} alt="" />
+    <img src={faceDown ? back : entry!.card.image} alt="" />
     {!faceDown && entry && <><span>{entry.card.cost}</span>{entry.damage > 0 && <span className="card-damage" title="Dano recebido">{entry.damage}</span>}{entry.drying && entry.card.type === 'Character' && <span className="card-state">Secando</span>}{entry.card.type !== 'Character' && <span className="card-state">{entry.card.type === 'Item' ? 'Item' : entry.card.type === 'Action' ? 'Ação' : 'Local'}</span>}{entry.location && <span className="card-location" title="Em um local">⌂</span>}</>}
   </button>;
 }
@@ -49,6 +49,7 @@ function actionInvolves(action: GameAction, iid: string): boolean {
 }
 
 export interface MatchTableProps {
+  cosmetics?: BotMatch['cosmetics'];
   /** Engine state seen from the viewer: 'player' is always you, 'bot' the opponent. */
   state: GameState;
   /** Legal actions for the viewer on this exact state. */
@@ -77,12 +78,15 @@ export interface MatchTableProps {
   /** Dialogs owned by the page (bot failure, lost connection…). */
   overlay?: ReactNode;
   boardLabel: string;
+  actionTimer?: ReactNode;
 }
 
 export function MatchTable({
-  state, legal, inkColors, deckNames, opponentName, opponentThinking, opponentBanner, opponentBadge,
-  busy = false, error, onDismissError, onAction, exitDialog, finishedActions, finishedMessage, overlay, boardLabel,
+  state, legal, inkColors, deckNames, cosmetics, opponentName, opponentThinking, opponentBanner, opponentBadge,
+  busy = false, error, onDismissError, onAction, exitDialog, finishedActions, finishedMessage, overlay, boardLabel, actionTimer,
 }: MatchTableProps) {
+  const playerBack = cosmetics?.player?.sleeve || backImage;
+  const botBack = cosmetics?.bot?.sleeve || backImage;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedPile, setSelectedPile] = useState<PlayerId | null>(null);
   const [pile, setPile] = useState<PlayerId | null>(null);
@@ -168,29 +172,33 @@ export function MatchTable({
   }
   const statusText = state.phase === 'finished' ? 'Partida encerrada' : decisionPlayer === 'bot' ? opponentThinking : pending ? 'Sua escolha' : 'Seu turno';
 
-  return <div className="game-table-page bot-table" aria-busy={busy || undefined}>
+  const turnColor = { amber: '#976000', amethyst: '#7135a6', emerald: '#176e3f', ruby: '#a32037', sapphire: '#1766a3', steel: '#54616b' }[inkColors[state.activePlayer]];
+  return <div className="game-table-page bot-table" style={{ '--turn-ink': turnColor } as CSSProperties} aria-busy={busy || undefined}>
     <header className="game-table-topbar"><Link className="game-table-brand" to="/jogar"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></Link><div className="game-table-round"><span>Turno {state.turn}</span><strong aria-live="polite">{statusText}</strong></div><div className="game-table-topactions"><button onClick={() => setShowLog(true)} aria-label="Histórico da partida">☷</button><button onClick={() => setExitOpen(true)} aria-label="Sair da mesa">↪ Sair</button></div></header>
-    <main className="game-board" aria-label={boardLabel}>
+    <main className="game-board" aria-label={boardLabel} style={{ backgroundImage: `url("${cosmetics?.bot?.playmat || './brand/lorcana-items/imgCampoAdversario.png'}"),url("${cosmetics?.player?.playmat || './brand/lorcana-items/imgMeuCampo.png'}")` }}>
+    <div key={`${state.turn}-${state.activePlayer}`} className="match-turn-glow" aria-hidden="true" />
       <Link className="game-board-mobile-brand" to="/jogar"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></Link>
       <div className="game-board-mobile-round"><span>Turno {state.turn}</span><strong aria-live="polite">{statusText}</strong></div>
       <div className="board-skin" aria-hidden="true"><span className="board-skin__opponent" /><span className="board-skin__middle" /><span className="board-skin__player" /></div>
       <div className="board-ornament board-ornament--top" />
-      <div className="opponent-hand" aria-label={`Mão ${opponentPossessive}: ${bot.hand.length} cartas`}>{bot.hand.map((entry, index) => <MatchCard key={entry.iid} hidden style={fanStyle(index, bot.hand.length, true)} />)}</div>
+      <img className="battle-character battle-character--player" src="./adventure/mickey-idle.gif" alt="Seu personagem: Mickey Knight" draggable={false} />
+      <img className="battle-character battle-character--opponent" src="./adventure/mickey-idle.gif" alt="Personagem do adversário: Mickey Knight" draggable={false} />
+      <div className="opponent-hand" aria-label={`Mão ${opponentPossessive}: ${bot.hand.length} cartas`}>{bot.hand.map((entry, index) => <MatchCard back={botBack} key={entry.iid} hidden style={fanStyle(index, bot.hand.length, true)} />)}</div>
       <span className="field-zone-label field-zone-label--opponent">Campo do oponente</span>
       <div className="opponent-zone">{renderField('bot')}</div>
-      <div className="deck-stack deck-stack--opponent" aria-label={`Deck ${opponentPossessive}: ${bot.deck.length} cartas`}><MatchCard hidden /><i>{bot.deck.length}</i></div>
+      <div className="deck-stack deck-stack--opponent" aria-label={`Deck ${opponentPossessive}: ${bot.deck.length} cartas`}><MatchCard back={botBack} hidden /><i>{bot.deck.length}</i></div>
       <div className="ink-zone ink-zone--opponent" aria-label={`Tinta ${opponentPossessive}: ${availableInk(state, 'bot')} de ${bot.inkwell.length}`}>
-        <span className="ink-pile-trigger ink-pile-trigger--opponent" title="As cartas de tinta do adversário ficam ocultas"><img src={backImage} alt="" /><b>{bot.inkwell.length}</b><small>Tinteiro</small></span>
-        <div className="ink-zone__spread">{[...bot.inkwell].reverse().map((entry) => <MatchCard key={entry.iid} hidden exhausted={entry.exerted} />)}</div>
+        <span className="ink-pile-trigger ink-pile-trigger--opponent" title="As cartas de tinta do adversário ficam ocultas"><img src={botBack} alt="" /><b>{bot.inkwell.length}</b><small>Tinteiro</small></span>
+        <div className="ink-zone__spread">{[...bot.inkwell].reverse().map((entry) => <MatchCard key={entry.iid} back={botBack} hidden exhausted={entry.exerted} />)}</div>
       </div>
       {discard('bot')}
-      <div className="board-divider"><span>{decisionPlayer === 'bot' ? opponentBanner : player.inkwell.length === 0 ? 'COLOQUE UMA CARTA NO TINTEIRO' : 'ESCOLHA UMA CARTA PARA AGIR'}</span></div>
+      <div className="board-divider"><span className="match-turn-banner" key={`${state.turn}-${state.activePlayer}`}>{decisionPlayer === 'bot' ? opponentBanner : player.inkwell.length === 0 ? 'COLOQUE UMA CARTA NO TINTEIRO' : 'ESCOLHA UMA CARTA PARA AGIR'}{actionTimer}</span></div>
       <span className="field-zone-label field-zone-label--player">Seu campo</span>
       <div className="player-zone">{renderField('player')}</div>
-      <div className="deck-stack deck-stack--player" aria-label={`Seu deck: ${player.deck.length} cartas`}><MatchCard hidden /><i>{player.deck.length}</i></div>
+      <div className="deck-stack deck-stack--player" aria-label={`Seu deck: ${player.deck.length} cartas`}><MatchCard back={playerBack} hidden /><i>{player.deck.length}</i></div>
       <div className="ink-zone ink-zone--player" aria-label={`Sua tinta: ${availableInk(state, 'player')} de ${player.inkwell.length}`}>
-        <button type="button" className="ink-pile-trigger" onClick={() => setInkOpen(true)} aria-label={`Consultar seu tinteiro: ${player.inkwell.length} cartas, ${availableInk(state, 'player')} disponíveis`}><img src={backImage} alt="" /><b>{player.inkwell.length}</b><small>Tinteiro</small></button>
-        <div className="ink-zone__spread">{player.inkwell.map((entry) => <MatchCard key={entry.iid} hidden exhausted={entry.exerted} onClick={() => setInkOpen(true)} />)}</div>
+        <button type="button" className="ink-pile-trigger" onClick={() => setInkOpen(true)} aria-label={`Consultar seu tinteiro: ${player.inkwell.length} cartas, ${availableInk(state, 'player')} disponíveis`}><img src={playerBack} alt="" /><b>{player.inkwell.length}</b><small>Tinteiro</small></button>
+        <div className="ink-zone__spread">{player.inkwell.map((entry) => <MatchCard key={entry.iid} back={playerBack} hidden exhausted={entry.exerted} onClick={() => setInkOpen(true)} />)}</div>
       </div>
       {discard('player')}
       <div className="player-hand" aria-label={`Sua mão: ${player.hand.length} cartas`}>{player.hand.map((entry, index) => <MatchCard key={entry.iid} entry={entry} style={fanStyle(index, player.hand.length, false)} onClick={() => inspectCard(entry.iid)} />)}</div>

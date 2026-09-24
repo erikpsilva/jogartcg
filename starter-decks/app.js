@@ -115,6 +115,19 @@
         const image = element('img'); image.src = fullImage; image.alt = card.full_name; image.loading = 'lazy';
         button.append(image, element('span', 'quantity', `${entry.quantity}×`));
         button.addEventListener('click', () => {
+          const description = byId('zoom-description');
+          description.replaceChildren(element('h2', '', card.full_name));
+          description.append(element('p', '', `Custo ${card.cost ?? '—'} · ${card.type || ''}`));
+          const stats = [['Força', card.strength], ['Vontade', card.willpower], ['Lore', card.lore]].filter(([, value]) => value !== null && value !== undefined);
+          if (stats.length) description.append(element('p', '', stats.map(([label, value]) => `${label} ${value}`).join(' · ')));
+          const translated = card.text_pt_br?.trim();
+          description.append(element('p', 'zoom-rules', translated || (card.text_en ? 'Tradução ainda não disponível para esta carta.' : 'Esta carta não possui texto de habilidade.')));
+          if (card.text_en) {
+            const original = element('details');
+            original.open = !translated;
+            original.append(element('summary', '', 'Texto original'), element('p', 'zoom-rules', card.text_en));
+            description.append(original);
+          }
           byId('zoom-image').src = fullImage; byId('zoom-image').alt = card.full_name; byId('zoom').showModal();
         });
         item.append(button, element('h3', '', card.full_name), element('p', '', `${entry.quantity} cópia${entry.quantity > 1 ? 's' : ''}${entry.foil ? ' · Foil na embalagem' : ''}`));
@@ -150,6 +163,24 @@
     if (link && !event.ctrlKey && !event.metaKey && !event.shiftKey) { event.preventDefault(); openDeck(link.dataset.detail); }
     const add = event.target.closest('[data-collect]'); if (add) collect(add.dataset.collect);
     const close = event.target.closest('[data-close]'); if (close) byId(close.dataset.close).close();
+  });
+  // Native dialog backdrops target the dialog itself; check bounds so padding
+  // and drags that began inside the content do not dismiss the modal.
+  ['detail', 'zoom', 'login'].forEach((id) => {
+    const modal = byId(id);
+    let startedOutside = false;
+    const outside = (event) => {
+      const bounds = modal.getBoundingClientRect();
+      return event.target === modal && (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom);
+    };
+    modal.addEventListener('pointerdown', (event) => { startedOutside = event.isPrimary && event.button === 0 && outside(event); });
+    modal.addEventListener('pointercancel', () => { startedOutside = false; });
+    modal.addEventListener('close', () => { startedOutside = false; });
+    modal.addEventListener('click', (event) => {
+      const dismiss = startedOutside && outside(event);
+      startedOutside = false;
+      if (dismiss) { event.stopPropagation(); modal.close(); }
+    });
   });
   detail.addEventListener('close', () => {
     ++detailRequest;
