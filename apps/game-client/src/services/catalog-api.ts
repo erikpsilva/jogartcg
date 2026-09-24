@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+import { apiUrl } from '../config/api';
 
 export interface CatalogImage {
   full: string | null;
@@ -128,7 +128,7 @@ async function requestJson<T>(path: string, signal?: AbortSignal): Promise<T> {
     options.signal = signal;
   }
 
-  const response = await fetch(`${API_BASE_URL}${path}`, options);
+  const response = await fetch(apiUrl(path), options);
   if (!response.ok) {
     throw new Error(`API respondeu com HTTP ${response.status}`);
   }

@@ -112,6 +112,19 @@ try {
     $pdo->prepare('INSERT INTO deck_cards (deck_id, card_source_id, quantidade) VALUES (?, ?, ?)')->execute([$biaInvalid, $cards[0]['card_id'], 4]);
     $pdo->prepare('INSERT INTO deck_cards (deck_id, card_source_id, quantidade) VALUES (?, ?, ?)')->execute([$biaInvalid, $cards[1]['card_id'], 4]);
 
+    section('Arbitro de regras');
+    $response = $ana->request('GET', '/rooms/diagnostico');
+    $diagnostic = $response['body']['data'] ?? [];
+    check($response['status'] === 200 && ($diagnostic['modo'] ?? '') === 'php',
+        'diagnostico responde que o arbitro roda no proprio PHP', $response);
+    check(($diagnostic['teste'] ?? '') === 'ok',
+        'o arbitro cria uma partida de teste com cartas reais', $response);
+    check(($diagnostic['cartas_com_regras_completas'] ?? 0) > 0,
+        'o catalogo tem regras compiladas no banco', $response);
+    $anonymous = new Client($base, 'Anonimo');
+    $blocked = $anonymous->request('GET', '/rooms/diagnostico');
+    check($blocked['status'] === 401, 'diagnostico exige sessao autenticada', $blocked);
+
     section('Codigo invalido');
     $response = $ana->request('POST', '/rooms/join', ['code' => '12ab']);
     check($response['status'] === 422 && $response['body']['error'] === 'invalid_code', 'formato invalido e recusado (422)', $response);

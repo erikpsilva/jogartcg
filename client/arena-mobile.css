@@ -1,0 +1,31 @@
+/* Mobile arena: keep field cards readable; own ink is a private, counted pile. */
+.ink-pile-trigger { display: none; }
+.match-ink-list small { display: block; margin-top: 5px; color: #b9c9df; font-size: 12px; }
+.bot-table .game-card > .card-state { z-index: 4; opacity: 1; visibility: visible; pointer-events: none; white-space: nowrap; }
+@media (orientation: landscape) and (max-width: 1100px), (orientation: landscape) and (max-height: 600px) and (pointer: coarse) {
+  .bot-table { --field-card: clamp(48px,18dvh,88px); --hand-card: clamp(64px,19dvh,96px); }
+  .bot-table .player-zone { top: 52%; left: 16%; right: 12%; height: 32%; overflow-x: auto; overflow-y: hidden; z-index: 6; }
+  .bot-table .opponent-zone { top: 16%; left: 12%; right: 16%; height: 32%; overflow-x: auto; overflow-y: hidden; z-index: 6; }
+  .bot-table .field-row { gap: clamp(14px,2.3vw,26px); padding: 12px 14px 10px; align-items: center; }
+  .bot-table :is(.player-zone, .opponent-zone) .game-card { overflow: visible; }
+  .bot-table :is(.player-zone, .opponent-zone) .game-card img { border-radius: 5px; }
+  .bot-table :is(.player-zone, .opponent-zone) .game-card > span:first-of-type { top: -7px; left: -7px; width: 24px; height: 24px; font-size: 15px; }
+  .bot-table :is(.player-zone, .opponent-zone) .game-card > .card-damage { bottom: -5px; right: -6px; z-index: 5; }
+  .bot-table .game-card > .card-state { font-size: clamp(8px,2.3dvh,10px); left: 2px; bottom: 2px; max-width: calc(100% - 4px); padding: 3px 2px; background: #080d19f5; color: #fff; }
+  .bot-table:has(.player-zone .game-card) .field-zone-label--player { display: none; }
+  .bot-table .ink-zone--player { top: 69%; bottom: auto; left: 3%; right: auto; width: 42px; z-index: 8; }
+  .bot-table .ink-zone .ink-zone__spread { display: none; }
+  .bot-table .ink-zone--opponent { top: 19%; bottom: auto; right: 3%; left: auto; width: 42px; z-index: 8; }
+  .bot-table .ink-pile-trigger.ink-pile-trigger--opponent { cursor: default; }
+  .bot-table:has(.opponent-zone .game-card) .field-zone-label--opponent { display: none; }
+  .bot-table .ink-pile-trigger { display: block; position: relative; width: clamp(30px,8.5dvh,42px); aspect-ratio: 5/7; padding: 0; border: 2px solid #e2bd67; border-radius: 5px; background: #080d19; box-shadow: 3px -3px 0 #101726,4px -4px 0 #cda448,6px -6px 0 #101726,7px -7px 0 #cda448; cursor: pointer; }
+  .bot-table .ink-pile-trigger img { width: 100%; height: 100%; object-fit: cover; border-radius: 3px; }
+  .bot-table .ink-pile-trigger b { position: absolute; top: -13px; left: -9px; min-width: 25px; height: 25px; display: grid; place-items: center; border: 2px solid #e2bd67; border-radius: 50%; background: #10192c; color: #fff; font-size: 14px; }
+  .bot-table .ink-pile-trigger small { position: absolute; top: calc(100% + 5px); left: 50%; transform: translateX(-50%); color: #fff; font-size: 9px; text-shadow: 0 1px 3px #000; }
+  .bot-table .deck-stack .game-card { width: clamp(34px,10.5dvh,52px); }
+  .bot-table .discard-board-pile { width: clamp(34px,10.5dvh,52px); }
+  .bot-table .discard-board-pile img, .bot-table .discard-board-pile > span { width: clamp(27px,7.5dvh,38px); }
+  .bot-table .player-hand { bottom: -36px; z-index: 7; }
+  .bot-table :is(.player-zone, .opponent-zone) .game-card:hover { transform: none; }
+  .bot-table :is(.player-zone, .opponent-zone) .game-card--exhausted:hover { transform: rotate(90deg) scale(.86); }
+}

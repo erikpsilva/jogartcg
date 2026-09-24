@@ -7,6 +7,7 @@ require_once dirname(__DIR__) . '/config/lorcana.php';
 require_once __DIR__ . '/payload.php';
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/decks.php';
+require_once __DIR__ . '/starters.php';
 require_once __DIR__ . '/game.php';
 require_once __DIR__ . '/bugs.php';
 require_once __DIR__ . '/rooms.php';
@@ -71,9 +72,27 @@ function filterOptions(PDO $pdo, string $column, string $language): array
     return array_values($options);
 }
 
-$requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/api/v1', PHP_URL_PATH) ?: '/api/v1';
-$apiPosition = strpos($requestPath, '/api/');
-$route = $apiPosition === false ? '' : trim(substr($requestPath, $apiPosition + 5), '/');
+/**
+ * Rota da requisicao.
+ *
+ * Com reescrita no servidor (Apache/.htaccess), vem do proprio caminho:
+ *   /api/v1/cards?lang=pt-BR
+ * Sem reescrita (Nginx, por exemplo), vem no parametro `r`, que funciona em
+ * qualquer servidor porque chama o arquivo diretamente:
+ *   /api/index.php?r=/v1/cards&lang=pt-BR
+ */
+$routeParam = isset($_GET['r']) && is_string($_GET['r']) ? $_GET['r'] : null;
+if ($routeParam !== null) {
+    // Sai de $_GET para nao virar filtro de busca por engano.
+    unset($_GET['r']);
+    $route = trim(preg_replace('#[^A-Za-z0-9/_.-]#', '', $routeParam) ?? '', '/');
+} else {
+    $requestPath = parse_url($_SERVER['REQUEST_URI'] ?? '/api/v1', PHP_URL_PATH) ?: '/api/v1';
+    $apiPosition = strpos($requestPath, '/api/');
+    $route = $apiPosition === false ? '' : trim(substr($requestPath, $apiPosition + 5), '/');
+    // Chamada direta ao arquivo, com o caminho depois dele: /api/index.php/v1/cards
+    if (str_starts_with($route, 'index.php')) $route = trim(substr($route, strlen('index.php')), '/');
+}
 $segments = $route === '' ? [] : explode('/', $route);
 
 if (($segments[0] ?? '') !== 'v1') {
@@ -122,6 +141,7 @@ if ($resource === 'settings') {
 // Contas de jogador. Retorna sozinho quando a rota e de /auth.
 handleAuthRoutes($pdo, $segments, $requestMethod);
 handleDeckRoutes($pdo, $segments, $requestMethod);
+handleStarterRoutes($pdo, $segments, $requestMethod);
 handleGameRoutes($pdo, $segments, $requestMethod);
 handleBugRoutes($pdo, $segments, $requestMethod);
 handleRoomRoutes($pdo, $segments, $requestMethod);

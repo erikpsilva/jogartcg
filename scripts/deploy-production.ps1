@@ -33,7 +33,7 @@ $releaseFiles | ForEach-Object {
 
 if (-not $Publish) {
     Write-Host ''
-    Write-Host 'Simulacao concluida. Execute npm run deploy para publicar.'
+    Write-Host 'Simulacao concluida. Execute powershell -File scripts/deploy-production.ps1 -Publish para publicar.'
     exit 0
 }
 

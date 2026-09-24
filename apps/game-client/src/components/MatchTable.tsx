@@ -86,6 +86,8 @@ export function MatchTable({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [selectedPile, setSelectedPile] = useState<PlayerId | null>(null);
   const [pile, setPile] = useState<PlayerId | null>(null);
+  const [inkOpen, setInkOpen] = useState(false);
+  const [selectedFromInk, setSelectedFromInk] = useState(false);
   const [showLog, setShowLog] = useState(false);
   const [exitOpen, setExitOpen] = useState(false);
   const [choiceIds, setChoiceIds] = useState<string[]>([]);
@@ -96,9 +98,9 @@ export function MatchTable({
 
   const player = state.players.player;
   const bot = state.players.bot;
-  const visibleCards = [...player.hand, ...player.field, ...player.discard, ...bot.field, ...bot.discard];
+  const visibleCards = [...player.hand, ...player.field, ...player.discard, ...player.inkwell, ...bot.field, ...bot.discard];
   const selected = visibleCards.find((card) => card.iid === selectedId);
-  const selectedActions = selected ? legal.filter((action) => actionInvolves(action, selected.iid)) : [];
+  const selectedActions = selected && !selectedFromInk ? legal.filter((action) => actionInvolves(action, selected.iid)) : [];
   const passAction = legal.find((action) => ['end-turn', 'endTurn', 'pass'].includes(action.type));
   const concedeAction = legal.find((action) => action.type === 'concede');
   const pending = state.pending?.player === 'player' ? state.pending : null;
@@ -114,11 +116,14 @@ export function MatchTable({
     setChoiceIds((values) => values.includes(id) ? values.filter((value) => value !== id) : pending.max === 1 ? [id] : values.length < pending.max ? [...values, id] : values);
   }
   function inspectCard(iid: string, sourcePile: PlayerId | null = null) {
+    setSelectedFromInk(false);
     setSelectedPile(sourcePile);
     setSelectedId(iid);
   }
   function closeCardDetails() {
     setSelectedId(null);
+    if (selectedFromInk) setInkOpen(true);
+    setSelectedFromInk(false);
     if (selectedPile) setPile(selectedPile);
     setSelectedPile(null);
   }
@@ -174,13 +179,19 @@ export function MatchTable({
       <span className="field-zone-label field-zone-label--opponent">Campo do oponente</span>
       <div className="opponent-zone">{renderField('bot')}</div>
       <div className="deck-stack deck-stack--opponent" aria-label={`Deck ${opponentPossessive}: ${bot.deck.length} cartas`}><MatchCard hidden /><i>{bot.deck.length}</i></div>
-      <div className="ink-zone ink-zone--opponent" aria-label={`Tinta ${opponentPossessive}: ${availableInk(state, 'bot')} de ${bot.inkwell.length}`}><div>{[...bot.inkwell].reverse().map((entry) => <MatchCard key={entry.iid} hidden exhausted={entry.exerted} />)}</div></div>
+      <div className="ink-zone ink-zone--opponent" aria-label={`Tinta ${opponentPossessive}: ${availableInk(state, 'bot')} de ${bot.inkwell.length}`}>
+        <span className="ink-pile-trigger ink-pile-trigger--opponent" title="As cartas de tinta do adversário ficam ocultas"><img src={backImage} alt="" /><b>{bot.inkwell.length}</b><small>Tinteiro</small></span>
+        <div className="ink-zone__spread">{[...bot.inkwell].reverse().map((entry) => <MatchCard key={entry.iid} hidden exhausted={entry.exerted} />)}</div>
+      </div>
       {discard('bot')}
       <div className="board-divider"><span>{decisionPlayer === 'bot' ? opponentBanner : player.inkwell.length === 0 ? 'COLOQUE UMA CARTA NO TINTEIRO' : 'ESCOLHA UMA CARTA PARA AGIR'}</span></div>
       <span className="field-zone-label field-zone-label--player">Seu campo</span>
       <div className="player-zone">{renderField('player')}</div>
       <div className="deck-stack deck-stack--player" aria-label={`Seu deck: ${player.deck.length} cartas`}><MatchCard hidden /><i>{player.deck.length}</i></div>
-      <div className="ink-zone ink-zone--player" aria-label={`Sua tinta: ${availableInk(state, 'player')} de ${player.inkwell.length}`}><div>{player.inkwell.map((entry) => <MatchCard key={entry.iid} hidden exhausted={entry.exerted} />)}</div></div>
+      <div className="ink-zone ink-zone--player" aria-label={`Sua tinta: ${availableInk(state, 'player')} de ${player.inkwell.length}`}>
+        <button type="button" className="ink-pile-trigger" onClick={() => setInkOpen(true)} aria-label={`Consultar seu tinteiro: ${player.inkwell.length} cartas, ${availableInk(state, 'player')} disponíveis`}><img src={backImage} alt="" /><b>{player.inkwell.length}</b><small>Tinteiro</small></button>
+        <div className="ink-zone__spread">{player.inkwell.map((entry) => <MatchCard key={entry.iid} hidden exhausted={entry.exerted} onClick={() => setInkOpen(true)} />)}</div>
+      </div>
       {discard('player')}
       <div className="player-hand" aria-label={`Sua mão: ${player.hand.length} cartas`}>{player.hand.map((entry, index) => <MatchCard key={entry.iid} entry={entry} style={fanStyle(index, player.hand.length, false)} onClick={() => inspectCard(entry.iid)} />)}</div>
     </main>
@@ -195,6 +206,7 @@ export function MatchTable({
       <div className="resource-block resource-block--player"><img src={inkBottleAsset(inkColors.player)} alt="" /><div><span>Tinta</span><b>{availableInk(state, 'player')} <i>/ {player.inkwell.length}</i></b></div></div>
     </aside>
 
+    {inkOpen && !pending && <Dialog title={`Seu tinteiro · ${player.inkwell.length} cartas`} close={() => setInkOpen(false)}><p>{availableInk(state, 'player')} disponíveis · {player.inkwell.filter((entry) => entry.exerted).length} utilizadas. Toque em uma carta para consultar os detalhes.</p><div className="match-pile-list match-ink-list">{player.inkwell.map((entry) => <button key={entry.iid} disabled={!entry.card.id} onClick={() => { inspectCard(entry.iid); setSelectedFromInk(true); setInkOpen(false); }}><img src={entry.card.image || backImage} alt="" /><span>{title(entry) || 'Carta de tinta'}<small>{entry.exerted ? 'Utilizada neste turno' : 'Disponível'}</small></span></button>)}</div>{!player.inkwell.length && <p>Você ainda não colocou cartas no tinteiro.</p>}</Dialog>}
     {selected && !pending && !targetActions && <Dialog title={title(selected)} close={closeCardDetails}><div className="match-card-detail"><img src={selected.card.image} alt={title(selected)} /><div className="match-card-detail__body">
       <div className="match-card-detail__description">
         <p className="match-card-detail__meta">{displayCard(selected).fullName || selected.card.name} · Custo {getStats(state, selected.iid).cost}</p>
@@ -202,7 +214,7 @@ export function MatchTable({
         <p className="match-card-detail__text">{(displayCard(selected).textPt || selected.card.text) ? <CardText text={displayCard(selected).textPt || selected.card.text} /> : 'Esta carta não possui habilidades.'}</p>
         {selected.card.text && <details><summary>Texto original</summary><p className="match-card-detail__text"><CardText text={selected.card.text} /></p></details>}
       </div>
-      <div className="match-card-detail__action-panel">
+      <div className="match-card-detail__action-panel" hidden={selectedFromInk}>
         <div className="match-actions">{actionButtons()}</div>
         {!selectedActions.length && <p>{decisionPlayer !== 'player' ? 'Aguarde a sua vez.' : selected.exerted ? 'Esta carta já está virada.' : selected.drying ? 'Este personagem está secando. Ele poderá agir no seu próximo turno.' : player.hand.some((card) => card.iid === selected.iid) ? 'Sem ação disponível: confira a tinta e o limite de uma carta no tinteiro por turno.' : 'Nenhuma ação está disponível para esta carta agora.'}</p>}
       </div>

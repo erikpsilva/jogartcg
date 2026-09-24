@@ -1,3 +1,4 @@
+import { InkColors } from '../components/InkColors';
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getCard, type CardDetail } from '../services/catalog-api';
@@ -61,7 +62,7 @@ export function CardDetailPage() {
           </div>
 
           <div className="detail-tags">
-            <span>{card.color}</span>
+            <InkColors colors={card.color} />
             <span>{card.type}</span>
             <span>{printing.rarity ?? card.rarity}</span>
             {card.inkwell && <span>Tinteiro</span>}

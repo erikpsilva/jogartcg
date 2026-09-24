@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+import { apiUrl } from '../config/api';
 import type { CatalogCard } from './catalog-api';
 
 export type DeckFormatKey = 'core' | 'infinity' | 'preconstructed' | 'sealed' | 'draft' | 'pack_rush';
@@ -18,7 +18,7 @@ export interface ImportResult { cards: Array<{ quantity: number; card: CatalogCa
 export interface ExportResult { filename: string; mime_type: string; content: string; }
 
 async function apiRequest<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}${path}`, { ...options, credentials: 'include', headers: { Accept: 'application/json', ...options.headers } });
+  const response = await fetch(apiUrl(path), { ...options, credentials: 'include', headers: { Accept: 'application/json', ...options.headers } });
   const body = await response.json().catch(() => ({})) as { message?: string };
   if (!response.ok) throw new Error(body.message ?? `Erro HTTP ${response.status}`);
   return body as T;

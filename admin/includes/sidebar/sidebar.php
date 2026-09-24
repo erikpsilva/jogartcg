@@ -19,10 +19,10 @@
 
             <?php if ($_SESSION['usuario']['nivel_acesso'] === 'admin'): ?>
             <li class="sidebar__item">
-                <a href="<?= ADMIN_BASE_URL ?>/usuarios-site" class="sidebar__link <?= $subRoute === 'usuarios-site' ? 'sidebar__link--active' : '' ?>"><i class="fa-solid fa-users" aria-hidden="true"></i> Usuários do site</a>
+                <a href="<?= adminUrl('usuarios-site') ?>" class="sidebar__link <?= $subRoute === 'usuarios-site' ? 'sidebar__link--active' : '' ?>"><i class="fa-solid fa-users" aria-hidden="true"></i> Usuários do site</a>
             </li>
             <li class="sidebar__item">
-                <a href="<?= ADMIN_BASE_URL ?>/configuracoes" class="sidebar__link <?= $subRoute === 'configuracoes' ? 'sidebar__link--active' : '' ?>"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Configurações</a>
+                <a href="<?= adminUrl('configuracoes') ?>" class="sidebar__link <?= $subRoute === 'configuracoes' ? 'sidebar__link--active' : '' ?>"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Configurações</a>
             </li>
             <li class="sidebar__item">
                 <a href="<?= BASE_URL ?>/admin/cadastrarusuario"

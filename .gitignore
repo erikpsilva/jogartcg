@@ -15,6 +15,7 @@ node_modules/
 !.env.example
 .deploy/
 config/database.credentials.php
+config/referee.credentials.php
 *.local
 *.pem
 *.key

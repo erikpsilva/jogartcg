@@ -20,7 +20,7 @@ if (!empty($_SESSION['usuario'])) {
 <!-- BANNER INTRODUTÓRIO -->
 <section class="adminLogin">
     <div class="adminLogin__content">
-        <form class="formGroup" id="adminLoginForm" action="<?= ADMIN_BASE_URL ?>/services/login.php" method="post" data-redirect="<?= ADMIN_BASE_URL ?>/inicio">
+        <form class="formGroup" id="adminLoginForm" action="<?= ADMIN_BASE_URL ?>/services/login.php" method="post" data-redirect="<?= adminUrl('inicio') ?>">
             <div class="row">
 
                 <div class="col-md-12">

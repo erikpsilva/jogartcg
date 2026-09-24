@@ -17,7 +17,7 @@ function runsStandalone() {
     || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
 }
 
-export function InstallProvider({ children }: { children: ReactNode }) {
+export function InstallProvider({ children, assetBase = './brand/' }: { children: ReactNode; assetBase?: string }) {
   const [promptEvent, setPromptEvent] = useState<InstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(runsStandalone);
   const [open, setOpen] = useState(false);
@@ -58,7 +58,7 @@ export function InstallProvider({ children }: { children: ReactNode }) {
     {open && !installed && <div className="install-dialog" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setOpen(false); }}>
       <section role="dialog" aria-modal="true" aria-labelledby="install-title">
         <button className="install-dialog__close" type="button" onClick={() => setOpen(false)} aria-label="Fechar">×</button>
-        <img src="./brand/favicon.png" alt="" />
+        <img src={`${assetBase}favicon.png`} alt="" />
         <div><span>Jogar TCG</span><h2 id="install-title">Instale o aplicativo</h2></div>
         <p>Abra o Jogar TCG em tela cheia, sem a barra do navegador, e tenha acesso rápido pelo celular.</p>
         {promptEvent ? <button className="button button--primary" type="button" onClick={() => void install()}>Instalar agora</button>

@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+import { apiUrl } from '../config/api';
 import type { CardDetail } from './catalog-api';
 import type { SavedDeckSummary } from './deck-api';
 
@@ -7,7 +7,7 @@ export interface GameDeck extends SavedDeckSummary {
 }
 
 async function get<T>(path: string, signal?: AbortSignal): Promise<T> {
-  const response = await fetch(`${API_BASE_URL}/game${path}`, {
+  const response = await fetch(apiUrl(`/game${path}`), {
     credentials: 'include', headers: { Accept: 'application/json' }, signal,
   });
   const body = await response.json();

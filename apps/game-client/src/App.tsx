@@ -14,6 +14,7 @@ import { GameTablePage } from './pages/GameTablePage';
 import { PlayLobbyPage } from './pages/PlayLobbyPage';
 import { BotGamePage } from './pages/BotGamePage';
 import { OnlineGamePage } from './pages/OnlineGamePage';
+import { GameplayPage } from './pages/GameplayPage';
 import { PlayAvailability, useSiteSettings } from './settings/SiteSettingsContext';
 
 function ProtectedRoute({ children }: { children: ReactNode }) {
@@ -35,6 +36,7 @@ export function App() {
         <Routes>
           <Route path="/" element={<Navigate to="/cartas" replace />} />
           <Route path="/cartas" element={<CatalogPage />} />
+          <Route path="/gameplay" element={<GameplayPage />} />
           <Route path="/cartas/:cardId" element={<CardDetailPage />} />
           <Route path="/meus-decks" element={<ProtectedRoute><MyDecksPage /></ProtectedRoute>} />
           <Route path="/meus-dados" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

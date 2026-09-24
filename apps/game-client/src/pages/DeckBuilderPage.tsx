@@ -1,3 +1,4 @@
+import { InkColors, InkColorSelect } from '../components/InkColors';
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -36,7 +37,7 @@ function BuilderCard({ card, quantity, limit, onOpen, onAdd }: { card: CatalogCa
       </button>
       {printings.length > 1 && <span className="builder-card__arts">{printings.length} artes</span>}
     </div>
-    <div className="builder-card__info"><div><small>{card.color} · {card.rarity}</small><strong>{card.name}</strong><span>{card.version || `Carta #${card.number}`}</span></div><button type="button" onClick={onAdd} disabled={limit !== null && quantity >= limit} aria-label={`Adicionar ${card.full_name} (arte principal)`}>+</button></div>
+    <div className="builder-card__info"><div><small><InkColors colors={card.color} /> · {card.rarity}</small><strong>{card.name}</strong><span>{card.version || `Carta #${card.number}`}</span></div><button type="button" onClick={onAdd} disabled={limit !== null && quantity >= limit} aria-label={`Adicionar ${card.full_name} (arte principal)`}>+</button></div>
   </article>;
 }
 
@@ -62,6 +63,8 @@ export function DeckBuilderPage() {
   const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState('');
   const [noticeType, setNoticeType] = useState<'info' | 'error' | 'success'>('info');
+  const [fullDeckOpen, setFullDeckOpen] = useState(false);
+  const fullDeckPanel = useRef<HTMLElement>(null);
   const [selectedCard, setSelectedCard] = useState<CatalogCard | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<CardDetail | null>(null);
   // Arte escolhida no modal; o botao de adicionar usa exatamente esta impressao.
@@ -89,10 +92,10 @@ export function DeckBuilderPage() {
   }, [query, format]);
   useEffect(() => {
     if (!selectedCard) return;
-    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') setSelectedCard(null); };
+    const close = (event: KeyboardEvent) => { if (event.key === 'Escape') { if (selectedCard) setSelectedCard(null); else setFullDeckOpen(false); } };
     document.addEventListener('keydown', close); document.body.classList.add('modal-open');
     return () => { document.removeEventListener('keydown', close); document.body.classList.remove('modal-open'); };
-  }, [selectedCard]);
+  }, [selectedCard, fullDeckOpen]);
   useEffect(() => {
     const cardId = Number(searchParams.get('carta'));
     if (initialCardHandled.current || !Number.isInteger(cardId) || cardId < 1) return;
@@ -108,6 +111,13 @@ export function DeckBuilderPage() {
       .catch((reason: unknown) => { if (!controller.signal.aborted) setDetailError(reason instanceof Error ? reason.message : 'Nao foi possivel carregar os detalhes.'); });
     return () => controller.abort();
   }, [selectedCard]);
+
+  useEffect(() => {
+    if (!fullDeckOpen) return;
+    const previous = document.activeElement as HTMLElement | null;
+    fullDeckPanel.current?.focus();
+    return () => previous?.focus();
+  }, [fullDeckOpen]);
 
   const entries = useMemo(() => Object.values(deck), [deck]);
   const totalCards = entries.reduce((total, entry) => total + entry.quantity, 0);
@@ -181,7 +191,7 @@ export function DeckBuilderPage() {
       <section className="deck-setup" aria-label="Configurações do deck">
         <label><span>Nome do deck</span><input type="text" maxLength={100} value={name} onChange={(event) => setName(event.target.value)} /></label>
         <label><span>Formato</span><select value={format} onChange={(event) => setFormat(event.target.value as DeckFormatKey)}>{formats.map((item) => <option value={item.key} key={item.key}>{item.label} · mínimo {item.minimum_cards}</option>)}</select><small className="field-help">{activeFormat?.description}</small></label>
-        <div className="deck-colors"><span>Cores escolhidas</span><div>{deckColors.length ? deckColors.map((color) => <b key={color}>{color}</b>) : <small>Adicione cartas para definir as cores</small>}</div></div>
+        <div className="deck-colors"><span>Cores escolhidas</span><div>{deckColors.length ? <InkColors colors={deckColors} /> : <small>Adicione cartas para definir as cores</small>}</div></div>
         {activeFormat && <div className="format-rules"><strong>Regras do formato</strong><span>Mínimo: {activeFormat.minimum_cards} cartas</span><span>{activeFormat.maximum_copies === null ? 'Cópias: conforme o card pool' : `Cópias: até ${activeFormat.maximum_copies} por nome completo`}</span><span>{activeFormat.maximum_colors === null ? 'Tintas: sem limite' : `Tintas: até ${activeFormat.maximum_colors}`}</span><span>{activeFormat.uses_rotation ? 'Rotação vigente aplicada' : 'Sem rotação'}</span>{activeFormat.banned_cards.length > 0 && <span className="format-rules__ban">Banida: {activeFormat.banned_cards.join(', ')}</span>}{activeFormat.requires_card_pool && <small>A legalidade do card pool fornecido pelo evento deve ser conferida pelo organizador.</small>}</div>}
       </section>
       <div className="builder-tabs" role="tablist"><button className={mode === 'cards' ? 'active' : ''} onClick={() => setMode('cards')}>Explorar cartas</button><button className={mode === 'import' ? 'active' : ''} onClick={() => setMode('import')}>Importar arquivo ou lista</button></div>
@@ -191,7 +201,7 @@ export function DeckBuilderPage() {
             <form className="builder-search" onSubmit={searchCards}><input value={searchDraft} onChange={(event) => setSearchDraft(event.target.value)} type="search" placeholder="Buscar por nome ou texto da carta..." /><button className="button button--primary">Buscar</button></form>
             <div className="builder-filter-row">
               <select aria-label="Coleção" value={query.set} onChange={(event) => setQuery((current) => ({ ...current, set: event.target.value }))}><option value="">Todas as coleções</option>{sets.map((set) => <option key={set.code} value={set.code}>{set.name_original}</option>)}</select>
-              <select aria-label="Cor" value={query.color} onChange={(event) => setQuery((current) => ({ ...current, color: event.target.value }))}><option value="">Todas as cores</option>{filters?.colors.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
+              <InkColorSelect value={query.color} options={filters?.colors || []} onChange={(color) => setQuery((current) => ({ ...current, color }))} />
               <select aria-label="Tipo" value={query.type} onChange={(event) => setQuery((current) => ({ ...current, type: event.target.value }))}><option value="">Todos os tipos</option>{filters?.types.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}</select>
               <button type="button" onClick={() => { setSearchDraft(''); setQuery({ q: '', set: '', color: '', type: '' }); }}>Limpar filtros <span>×</span></button>
             </div>
@@ -199,9 +209,29 @@ export function DeckBuilderPage() {
           </> : <div className="deck-import"><div className="deck-import__intro"><span>Importar deck</span><h2>Traga sua lista para o Jogar TCG</h2><p>Importe TXT, CSV, JSON, DEK, listas copiadas de outros sites ou um link público do Dreamborn.ink.</p></div><label className="deck-url-input"><span>Link público do Dreamborn.ink</span><input type="url" value={importUrl} onChange={(event) => setImportUrl(event.target.value)} placeholder="https://dreamborn.ink/decks/..." /></label><div className="import-divider"><span>ou escolha um arquivo</span></div><label className="file-drop" htmlFor="deck-file"><input id="deck-file" type="file" accept=".txt,.csv,.json,.dek" onChange={(event) => void readFile(event)} /><b>↑</b><strong>Escolher arquivo do dispositivo</strong><span>TXT, CSV, JSON ou DEK · até 2 MB</span></label><div className="import-divider"><span>ou cole sua lista</span></div><label className="deck-list-input"><span>Lista do deck</span><textarea rows={9} value={importText} onChange={(event) => setImportText(event.target.value)} placeholder={'4 HeiHei - Boat Snack\n4 Ariel - Spectacular Singer'} /></label><button className="button button--primary" type="button" disabled={importing} onClick={() => void analyzeImport()}>{importing ? 'Analisando…' : 'Analisar lista'}</button></div>}
         </section>
         <aside className="deck-panel"><div className="deck-panel__header"><div><span>{activeFormat?.label || 'Seu deck'}</span><strong>{name || 'Sem nome'}</strong></div><b className={!validationIssues.length ? 'complete' : ''}>{totalCards}<small>/{minimumCards}</small></b></div><div className="deck-panel__progress"><i style={{ width: `${Math.min((totalCards / minimumCards) * 100, 100)}%` }} /></div>
-          {entries.length ? <div className="deck-list">{entries.map(({ card, quantity }) => { const limit = activeFormat?.maximum_copies === null ? null : Math.max(activeFormat?.maximum_copies ?? 4, card.max_copies_in_deck || 4); return <div className="deck-list__item" key={card.id}><img src={card.image.thumbnail || card.image.full || ''} alt="" /><div><strong>{card.name}</strong><span>{card.cost ?? '—'} tinta · {card.rarity} · {limit === null ? 'sem limite de cópias' : `limite ${limit} somando as artes`}</span></div><div className="quantity-control"><button onClick={() => removeCard(card.id)}>−</button><b>{quantity}</b><button onClick={() => addCard(card)} disabled={limit !== null && groupQuantity(card) >= limit}>+</button></div></div>; })}</div> : <div className="deck-empty"><span>◇</span><strong>Seu deck está vazio</strong><p>Use o botão “+” nas cartas ou importe uma lista.</p></div>}
+          <button className="button button--ghost deck-panel__expand" type="button" onClick={() => setFullDeckOpen(true)}>Ver deck completo</button>
+          {entries.length ? <div className="deck-list">{entries.map(({ card, quantity }) => { const limit = activeFormat?.maximum_copies === null ? null : Math.max(activeFormat?.maximum_copies ?? 4, card.max_copies_in_deck || 4); return <div className="deck-list__item" key={card.id}><button className="deck-list__preview" type="button" onClick={() => setSelectedCard(card)} aria-label={`Ampliar ${card.full_name}`}><img src={card.image.thumbnail || card.image.full || ''} alt="" /></button><div><strong>{card.name}</strong><span>{card.cost ?? '—'} tinta · {card.rarity} · {limit === null ? 'sem limite de cópias' : `limite ${limit} somando as artes`}</span></div><div className="quantity-control"><button onClick={() => removeCard(card.id)}>−</button><b>{quantity}</b><button onClick={() => addCard(card)} disabled={limit !== null && groupQuantity(card) >= limit}>+</button></div></div>; })}</div> : <div className="deck-empty"><span>◇</span><strong>Seu deck está vazio</strong><p>Use o botão “+” nas cartas ou importe uma lista.</p></div>}
           <div className="deck-panel__summary"><span>Cartas diferentes <b>{entries.length}</b></span><span>Cores <b>{deckColors.length || '—'}</b></span></div><button className="button button--primary button--large" type="button" disabled={saving} onClick={() => void handleSave()}>{saving ? 'Salvando…' : currentId ? 'Salvar alterações' : 'Salvar deck'}</button>{currentId && <div className="deck-export"><span>Exportar</span>{(['txt', 'csv', 'json', 'dek'] as const).map((type) => <button type="button" key={type} onClick={() => void exportCurrent(type)}>{type.toUpperCase()}</button>)}</div>}{notice && <div className={`feedback feedback--${noticeType}`} role="status">{notice}</div>}</aside>
       </div>
+      {fullDeckOpen && <section className="deck-fullscreen" ref={fullDeckPanel} role="dialog" aria-modal="true" aria-label="Deck completo" tabIndex={-1} onKeyDown={(event) => {
+        if (event.key !== 'Tab' || selectedCard) return;
+        const controls = [...(fullDeckPanel.current?.querySelectorAll<HTMLElement>('button:not(:disabled), a[href]') ?? [])];
+        const first = controls[0]; const last = controls[controls.length - 1];
+        if (event.shiftKey && (document.activeElement === first || document.activeElement === fullDeckPanel.current)) { event.preventDefault(); last?.focus(); }
+        else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+      }}>
+        <header className="deck-fullscreen__header"><div><h2>{name || 'Seu deck'}</h2><p>{totalCards} cartas · {entries.length} artes diferentes · Alterações compartilhadas com o editor.</p></div><button className="button button--ghost" type="button" onClick={() => setFullDeckOpen(false)}>Voltar ao editor ×</button></header>
+        <div className="deck-fullscreen__grid">{entries.map(({ card, quantity }) => {
+          const limit = activeFormat?.maximum_copies === null ? null : Math.max(activeFormat?.maximum_copies ?? 4, card.max_copies_in_deck || 4);
+          return <article className="deck-fullscreen__card" key={card.id}>
+            <button className="deck-fullscreen__image" type="button" onClick={() => setSelectedCard(card)} aria-label={`Ampliar ${card.full_name}`}><img src={card.image.full || card.image.thumbnail || ''} alt={card.full_name} loading="lazy" /><span>Ampliar carta</span></button>
+            <strong>{card.full_name}</strong>
+            <div className="quantity-control"><button type="button" onClick={() => removeCard(card.id)} aria-label={`Remover uma cópia de ${card.full_name}`}>−</button><b>{quantity}×</b><button type="button" disabled={limit !== null && groupQuantity(card) >= limit} onClick={() => addCard(card)} aria-label={`Adicionar uma cópia de ${card.full_name}`}>+</button></div>
+          </article>;
+        })}</div>
+        {!entries.length && <p className="deck-empty">Seu deck está vazio. Volte ao editor para adicionar cartas.</p>}
+        <footer className="deck-fullscreen__footer"><span>Use − para remover uma cópia. Salve para guardar as alterações.</span><button className="button button--primary" disabled={saving} onClick={() => void handleSave()}>{saving ? 'Salvando…' : 'Salvar deck'}</button>{notice && <p role="status">{notice}</p>}</footer>
+      </section>}
       {selectedCard && (
         <div className="card-preview" onMouseDown={() => setSelectedCard(null)}>
           <section className="card-preview__dialog card-preview__dialog--complete" role="dialog" aria-modal="true" aria-label={`Detalhes de ${selectedCard.full_name}`} onMouseDown={(event) => event.stopPropagation()}>

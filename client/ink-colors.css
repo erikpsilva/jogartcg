@@ -1,0 +1,16 @@
+/* Shared Lorcana ink symbols: catalog, deck lists, builder and starters. */
+.lorcana-inks, .starter-content .lorcana-inks { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 12px; vertical-align: middle; }
+.lorcana-inks .lorcana-ink, .starter-content .lorcana-inks .lorcana-ink { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; padding: 0; border: 0; background: transparent; line-height: 1.2; }
+.lorcana-inks .lorcana-ink img, .starter-content .lorcana-inks .lorcana-ink img { display: block; width: 30px; height: 34px; object-fit: contain; margin: 0; }
+.lorcana-inks .lorcana-ink > span, .starter-content .lorcana-inks .lorcana-ink > span { display: block; font-size: 10px; font-weight: 600; color: inherit; letter-spacing: .02em; text-transform: none; }
+.deck-colors > div { height: auto; min-height: 66px; }
+.ink-color-select { position: relative; min-width: 0; color: #e4eaf4; text-transform: none; font-size: 13px; }
+.ink-color-select > summary { cursor: pointer; padding: 11px 14px; border: 1px solid #343943; border-radius: 5px; background: #0c1016; min-height: 44px; }
+.ink-color-options { position: absolute; top: 100%; left: 0; z-index: 60; width: max(100%,240px); max-width: min(360px,85vw); max-height: 320px; overflow: auto; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; padding: 12px; background: #111722; border: 1px solid #b99646; border-radius: 6px; box-shadow: 0 12px 30px #000b; }
+.ink-color-options > button { padding: 10px; color: #f4f4f4; background: #0c1016; border: 1px solid #343943; border-radius: 5px; cursor: pointer; }
+.ink-color-options > button[aria-pressed=true] { border-color: #f5c518; background: #443819; }
+.starter-content .starter-ink-options { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.starter-content .starter-ink-options button { background: #10141b; color: #eee; padding: 8px; border-color: #465064; }
+.starter-content .starter-ink-options button[aria-pressed=true] { border-color: #f5c518; background: #443819; }
+@media(max-width:600px) { .lorcana-inks { gap: 8px; } .lorcana-inks .lorcana-ink img { width: 25px; height: 29px; } }
+

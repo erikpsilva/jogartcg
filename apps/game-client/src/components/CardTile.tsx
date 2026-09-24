@@ -1,9 +1,7 @@
+import { InkColors } from './InkColors';
 import { Link } from 'react-router-dom';
 import type { CardPrinting, CatalogCard } from '../services/catalog-api';
 
-function colorKey(color: string | null): string {
-  return (color || 'neutro').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-}
 
 /** Artes da carta; sem galeria (resposta antiga ou sem agrupamento), a imagem da propria carta. */
 export function cardPrintingsOf(card: CatalogCard): CardPrinting[] {
@@ -30,8 +28,8 @@ export function CardTile({ card, setName }: { card: CatalogCard; setName: string
 
       <div className="card-tile__content">
         <div className="card-tile__meta">
-          <span className="color-dot" data-color={colorKey(card.color)} />
-          <span>{card.color || 'Sem cor'}</span>
+          
+          <InkColors colors={card.color} />
           <span>•</span>
           <span>{card.rarity || 'Sem raridade'}</span>
         </div>

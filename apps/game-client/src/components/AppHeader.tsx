@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentProps, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink as RouterNavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useInstallApp } from '../pwa/InstallContext';
 import { useSiteSettings } from '../settings/SiteSettingsContext';
 
-export function AppHeader() {
+export function AppHeader({ clientBase, starterActive = false }: { clientBase?: string; starterActive?: boolean } = {}) {
+  const NavLink = (props: ComponentProps<typeof RouterNavLink>) => clientBase
+    ? <a href={`${clientBase}#${String(props.to)}`} className={typeof props.className === 'string' ? props.className : undefined} onClick={props.onClick} aria-label={props['aria-label']}>{props.children as ReactNode}</a>
+    : <RouterNavLink {...props} />;
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
   const { playEnabled } = useSiteSettings();
@@ -22,24 +25,26 @@ export function AppHeader() {
   }, [mobileMenuOpen]);
 
   async function handleLogout() {
-    try { await logout(); } finally { navigate('/cartas'); }
+    try { await logout(); } finally { if (clientBase) window.location.assign(`${clientBase}#/cartas`); else navigate('/cartas'); }
   }
 
   const mobileMenu = <div className={`mobile-site-menu ${mobileMenuOpen ? 'mobile-site-menu--open' : ''}`} id="mobile-site-menu" aria-hidden={!mobileMenuOpen}>
     <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Fechar menu">×</button>
     <nav aria-label="Navegação mobile">
-      <NavLink to="/cartas" onClick={() => setMobileMenuOpen(false)}>Cartas<small>Consulte o catálogo completo</small></NavLink>
+      {playEnabled && <NavLink to="/jogar" onClick={() => { setMobileMenuOpen(false); showInstallSuggestion(); }}>Modo Versus<small>Entre na arena</small></NavLink>}
       <NavLink to="/meus-decks" onClick={() => setMobileMenuOpen(false)}>Meus decks<small>Monte e gerencie suas listas</small></NavLink>
-      {playEnabled && <NavLink to="/jogar" onClick={() => { setMobileMenuOpen(false); showInstallSuggestion(); }}>Jogar<small>Entre na arena</small></NavLink>}
+      <NavLink to="/cartas" onClick={() => setMobileMenuOpen(false)}>Catálogo<small>Consulte o catálogo completo</small></NavLink>
+      <a href="../starter-decks/" className={starterActive ? 'active' : undefined} aria-current={starterActive ? 'page' : undefined} data-native-starters="true">Starter Deck<small>Listas originais para sua coleção</small></a>
+      <NavLink to="/gameplay" onClick={() => setMobileMenuOpen(false)}>Aventura Lorcana</NavLink>
     </nav>
   </div>;
 
   return <>
     <header className="site-header">
       <div className="site-header__inner">
-        <NavLink className="brand" to="/cartas" aria-label="Jogar TCG — catálogo"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></NavLink>
+        <NavLink className="brand" to="/cartas" aria-label="Jogar TCG — catálogo"><img src={`${clientBase || './'}brand/logo-jogar-tcg.png`} alt="Jogar TCG" /></NavLink>
         <nav className="site-nav" aria-label="Navegação principal">
-          <NavLink to="/cartas">Cartas</NavLink><NavLink to="/meus-decks">Meus decks</NavLink>{playEnabled && <NavLink to="/jogar" onClick={showInstallSuggestion}>Jogar</NavLink>}
+          {playEnabled && <NavLink to="/jogar" onClick={showInstallSuggestion}>Modo Versus</NavLink>}<NavLink to="/meus-decks">Meus decks</NavLink><NavLink to="/cartas">Catálogo</NavLink><a href="../starter-decks/" className={starterActive ? 'active' : undefined} aria-current={starterActive ? 'page' : undefined} data-native-starters="true">Starter Deck</a><NavLink to="/gameplay">Aventura Lorcana</NavLink>
         </nav>
         <div className="site-header__actions">
           <button className="install-button" type="button" disabled={installed} onClick={showInstallSuggestion}><span aria-hidden="true">↓</span>{installed ? 'Instalado' : 'Instalar'}</button>

@@ -1,3 +1,4 @@
+import { InkColorSelect } from '../components/InkColors';
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CardTile } from '../components/CardTile';
@@ -161,10 +162,7 @@ export function CatalogPage() {
 
           <label>
             <span>Cor</span>
-            <select value={searchParams.get('color') || ''} onChange={(event) => updateFilter('color', event.target.value)}>
-              <option value="">Todas as cores</option>
-              {filters.colors.map((option) => <option value={option.value} key={option.value}>{option.label}</option>)}
-            </select>
+            <InkColorSelect value={searchParams.get('color') || ''} options={filters.colors} onChange={(color) => updateFilter('color', color)} />
           </label>
 
           <label>

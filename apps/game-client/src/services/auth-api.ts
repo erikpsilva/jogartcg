@@ -1,4 +1,4 @@
-import { API_BASE_URL } from '../config/api';
+import { apiUrl } from '../config/api';
 import type { RegistrationErrors, RegistrationValues } from '../validation/registration';
 import { normalizeSpaces, onlyDigits } from '../validation/registration';
 
@@ -38,14 +38,14 @@ async function readJson(response: Response): Promise<Record<string, unknown>> {
 }
 
 export async function getSession(): Promise<{ authenticated: boolean; user: AuthUser | null; csrf_token: string }> {
-  const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include', headers: { Accept: 'application/json' } });
+  const response = await fetch(apiUrl('/auth/me'), { credentials: 'include', headers: { Accept: 'application/json' } });
   if (!response.ok) throw new Error('Nao foi possivel consultar a sessao.');
   const body = await response.json() as { data: { authenticated: boolean; user: AuthUser | null; csrf_token: string } };
   return body.data;
 }
 
 export async function loginUser(email: string, password: string): Promise<AuthSession> {
-  const response = await fetch(`${API_BASE_URL}/auth/login`, {
+  const response = await fetch(apiUrl('/auth/login'), {
     method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify({ email: email.trim().toLowerCase(), password })
   });
@@ -55,14 +55,14 @@ export async function loginUser(email: string, password: string): Promise<AuthSe
 }
 
 export async function logoutUser(csrfToken: string): Promise<void> {
-  const response = await fetch(`${API_BASE_URL}/auth/logout`, {
+  const response = await fetch(apiUrl('/auth/logout'), {
     method: 'POST', credentials: 'include', headers: { Accept: 'application/json', 'X-CSRF-Token': csrfToken }
   });
   if (!response.ok) throw new Error('Nao foi possivel encerrar a sessao.');
 }
 
 export async function getUserProfile(): Promise<UserProfile> {
-  const response = await fetch(`${API_BASE_URL}/auth/profile`, { credentials: 'include', headers: { Accept: 'application/json' } });
+  const response = await fetch(apiUrl('/auth/profile'), { credentials: 'include', headers: { Accept: 'application/json' } });
   const body = await readJson(response);
   if (!response.ok) throw new Error(typeof body.message === 'string' ? body.message : 'Nao foi possivel carregar seus dados.');
   return body.data as unknown as UserProfile;
@@ -72,7 +72,7 @@ export async function updateUserProfile(values: ProfileValues, csrfToken: string
   const form = new FormData();
   Object.entries(values).forEach(([key, value]) => form.append(key, key === 'phone' ? onlyDigits(value) : value));
   if (photo) form.append('photo', photo);
-  const response = await fetch(`${API_BASE_URL}/auth/profile`, {
+  const response = await fetch(apiUrl('/auth/profile'), {
     method: 'POST', credentials: 'include', headers: { Accept: 'application/json', 'X-CSRF-Token': csrfToken }, body: form
   });
   const body = await readJson(response);
@@ -98,7 +98,7 @@ export async function registerUser(values: RegistrationValues, photo?: File | nu
   const form = new FormData();
   Object.entries(payload).forEach(([key, value]) => form.append(key, String(value)));
   if (photo) form.append('photo', photo);
-  const response = await fetch(`${API_BASE_URL}/auth/register`, {
+  const response = await fetch(apiUrl('/auth/register'), {
     method: 'POST', credentials: 'include', headers: { Accept: 'application/json' }, body: form
   });
   const body = await readJson(response);
@@ -118,7 +118,7 @@ export async function checkFieldAvailability(field: 'email' | 'cpf', value: stri
   const query = new URLSearchParams({ field, value: normalized });
   const options: RequestInit = { credentials: 'include', headers: { Accept: 'application/json' } };
   if (signal) options.signal = signal;
-  const response = await fetch(`${API_BASE_URL}/auth/available?${query}`, options);
+  const response = await fetch(apiUrl(`/auth/available?${query}`), options);
   if (!response.ok) return null;
   const body = await response.json() as AvailabilityResponse;
   return body.success && body.data.checked && body.data.available === false ? body.data.message : null;

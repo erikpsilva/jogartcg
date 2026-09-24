@@ -1,3 +1,4 @@
+import { InkColors } from '../components/InkColors';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
@@ -41,7 +42,7 @@ export function MyDecksPage() {
         <div className="saved-decks-grid">{decks.map((deck) => (
           <article className="saved-deck-card" key={deck.id}>
             <span className={`deck-status deck-status--${deck.status}`}>{deck.status === 'valido' ? 'Deck valido' : 'Rascunho'}</span>
-            <h2>{deck.name}</h2><p>{deck.total_cards} cartas · {deck.colors.length ? deck.colors.join(' + ') : 'sem cor'}</p><small>{deck.validation.format?.label || deck.format}</small>
+            <h2>{deck.name}</h2><p>{deck.total_cards} cartas · <InkColors colors={deck.colors} /></p><small>{deck.validation.format?.label || deck.format}</small>
             {!deck.validation.valid && deck.validation.issues[0] && <small>{deck.validation.issues[0]}</small>}
             <div><Link className="button button--primary" to={`/decks/${deck.id}`}>Abrir deck</Link><button className="button button--ghost" type="button" onClick={() => void duplicate(deck)}>Duplicar</button><button className="button button--ghost" type="button" onClick={() => void remove(deck)}>Excluir</button></div>
           </article>

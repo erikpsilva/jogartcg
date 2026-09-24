@@ -120,7 +120,7 @@ function storeRefereeResult(PDO $pdo, array $match, array $result, ?int $seat, s
 /** Faz o assento desistir via motor (abandono ou saida voluntaria). Transacao com a partida travada. */
 function concedeSeat(PDO $pdo, array $match, int $seat, string $type): void
 {
-    $result = callReferee([
+    $result = callReferee($pdo, [
         'op' => 'apply', 'state' => json_decode((string) $match['estado_json'], true),
         'seat' => $seat, 'action' => ['type' => 'concede'], 'names' => seatNames($pdo, (int) $match['sala_id']),
     ]);
@@ -325,7 +325,7 @@ function startMatchIfReady(PDO $pdo, int $roomId): void
         $decks[(int) $row['assento']] = $deck['cards'];
     }
 
-    $result = callReferee([
+    $result = callReferee($pdo, [
         'op' => 'create', 'decks' => $decks, 'seed' => random_int(1, 2147483647), 'names' => seatNames($pdo, $roomId),
     ]);
     $pdo->prepare(
@@ -473,7 +473,61 @@ function handleRoomRoutes(PDO $pdo, array $segments, string $method): void
             $roomId = createRoom($pdo, $userId);
             respond(['success' => true, 'data' => roomPayload($pdo, $roomId, $userId)], 201);
         }
-        if ($second === 'current' && $method === 'GET') {
+        if ($second === 'diagnostico' && $method === 'GET') {
+        // Só para quem está logado. Mostra se o árbitro de regras está funcionando,
+        // sem revelar caminho de arquivo ou detalhe do servidor.
+        $started = microtime(true);
+        $status = 'nao_testado';
+        $detail = null;
+        $compiled = ['compiladas' => 0, 'prontas' => 0];
+        try {
+            $counts = $pdo->query(
+                'SELECT COUNT(rules_json) AS compiladas, SUM(rules_supported = 1) AS prontas
+                 FROM lorcana_cards WHERE active = 1'
+            )->fetch();
+            $compiled = ['compiladas' => (int) $counts['compiladas'], 'prontas' => (int) $counts['prontas']];
+            // Partida de teste com cartas reais: exercita o mesmo caminho de uma partida de verdade.
+            $rows = $pdo->query(
+                "SELECT source_id, name_en, full_name_en, type_en, cost, inkwell, strength, willpower, lore,
+                        move_cost, subtypes_en_json, full_text_en
+                 FROM lorcana_cards
+                 WHERE active = 1 AND rules_supported = 1 AND type_en = 'Character'
+                 ORDER BY source_id LIMIT 2"
+            )->fetchAll();
+            if (count($rows) < 2) throw new RefereeUnavailable('Catalogo sem regras compiladas: rode bin/compile_card_rules.php.');
+            $entry = static fn(array $row): array => ['quantity' => 8, 'card' => [
+                'id' => (int) $row['source_id'], 'name' => $row['name_en'], 'full_name' => $row['full_name_en'],
+                'cost' => (int) $row['cost'], 'inkwell' => (bool) $row['inkwell'], 'strength' => (int) $row['strength'],
+                'willpower' => (int) $row['willpower'], 'lore' => (int) $row['lore'], 'move_cost' => (int) $row['move_cost'],
+                'image' => ['full' => '', 'thumbnail' => ''],
+                'original' => [
+                    'name' => $row['name_en'], 'full_name' => $row['full_name_en'], 'type' => $row['type_en'],
+                    'full_text' => $row['full_text_en'], 'subtypes' => decodeJson($row['subtypes_en_json']) ?? [],
+                ],
+                'pt_br' => ['full_text' => $row['full_text_en']],
+            ]];
+            callReferee($pdo, [
+                'op' => 'create', 'decks' => [1 => [$entry($rows[0])], 2 => [$entry($rows[1])]],
+                'seed' => 1, 'names' => [1 => 'A', 2 => 'B'],
+            ]);
+            $status = 'ok';
+        } catch (RefereeUnavailable $exception) {
+            $status = 'falhou';
+            $detail = $exception->getMessage();
+        } catch (RuleViolation $exception) {
+            $status = 'ok'; // respondeu, so recusou o teste
+            $detail = $exception->getMessage();
+        }
+        respond(['success' => true, 'data' => [
+            'modo' => 'php',
+            'cartas_compiladas' => $compiled['compiladas'],
+            'cartas_com_regras_completas' => $compiled['prontas'],
+            'teste' => $status,
+            'detalhe' => $detail,
+            'tempo_ms' => (int) round((microtime(true) - $started) * 1000),
+        ]]);
+    }
+    if ($second === 'current' && $method === 'GET') {
             $current = currentRoomId($pdo, $userId);
             if ($current !== null) touchSeat($pdo, $current, $userId);
             respond(['success' => true, 'data' => $current === null ? null : roomPayload($pdo, $current, $userId, true)]);
@@ -564,7 +618,7 @@ function handleRoomRoutes(PDO $pdo, array $segments, string $method): void
                 ]);
             }
             try {
-                $result = callReferee([
+                $result = callReferee($pdo, [
                     'op' => 'apply', 'state' => json_decode((string) $match['estado_json'], true),
                     'seat' => (int) $membership['seat']['assento'], 'action' => $action, 'names' => seatNames($pdo, $roomId),
                 ]);

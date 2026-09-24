@@ -1,3 +1,4 @@
+import { InkColors } from '../components/InkColors';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { compileCardRules } from '@jogartcg/game-core';
@@ -12,7 +13,7 @@ function DeckCheck({ deck, label }: { deck: GameDeck; label: string }) {
   const unsupported = deck.cards.filter(({ card }) => !compileCardRules(card).supported);
   return <article className="match-deck-check">
     <span>{label}</span><h3>{deck.name}</h3>
-    <p>{deck.total_cards} cartas · {deck.colors.join(' + ')}</p>
+    <p>{deck.total_cards} cartas · <InkColors colors={deck.colors} /></p>
     {!deck.validation.valid && <div className="feedback feedback--error">{deck.validation.issues.join(' ')}</div>}
     {!['core', 'infinity'].includes(deck.format) && <p>O treino atual usa decks Core ou Infinity. Outros formatos terão preparação própria.</p>}
     {unsupported.length > 0 ? <details open><summary>{unsupported.length} carta(s) ainda precisam de habilidades implementadas</summary>

@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { API_BASE_URL } from '../config/api';
+import { apiUrl } from '../config/api';
 import { useAuth } from '../auth/AuthContext';
 
 const SiteSettingsContext = createContext({ playEnabled: false, loading: true, failed: false });
@@ -19,7 +19,7 @@ export function SiteSettingsProvider({ children }: { children: ReactNode }) {
       const controller = new AbortController();
       request = controller;
       try {
-        const response = await fetch(`${API_BASE_URL}/settings`, { credentials: 'include', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
+        const response = await fetch(apiUrl('/settings'), { credentials: 'include', cache: 'no-store', signal: controller.signal, headers: { Accept: 'application/json' } });
         const body = await response.json();
         if (!response.ok || typeof body.data?.can_play !== 'boolean') throw new Error('settings_unavailable');
         const permitted = body.data.can_play && (!user || body.data.viewer_id === user.id);

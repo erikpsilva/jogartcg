@@ -1,3 +1,5 @@
+param([switch] $RebuildLegacyAssets)
+
 $ErrorActionPreference = 'Stop'
 
 $projectRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
@@ -10,20 +12,20 @@ if (-not $deployRoot.StartsWith($projectRoot + [IO.Path]::DirectorySeparatorChar
 
 Push-Location $projectRoot
 try {
-    npm run build:admin
-    if ($LASTEXITCODE -ne 0) { throw 'O build do admin falhou.' }
-    npm run build:client
-    if ($LASTEXITCODE -ne 0) {
-        throw 'O build do cliente falhou.'
+    # A publicacao padrao usa os assets ja versionados; nao depende de Node.
+    # Opt-in somente para manutencao do cliente legado React/TypeScript.
+    if ($RebuildLegacyAssets) {
+        npm run build:admin
+        if ($LASTEXITCODE -ne 0) { throw 'O build do admin falhou.' }
+        npm run build:client
+        if ($LASTEXITCODE -ne 0) { throw 'O build do cliente falhou.' }
+        # Motor legado ainda usado no navegador para partidas contra o bot.
+        npm run build:core
+        if ($LASTEXITCODE -ne 0) { throw 'O build do motor falhou.' }
     }
-    # Arbitro das partidas online: build:server gera o pacote unico com o motor embutido.
-    npm run build:core
-    if ($LASTEXITCODE -ne 0) { throw 'O build do motor falhou.' }
-    npm run build:server
-    if ($LASTEXITCODE -ne 0) { throw 'O build do arbitro falhou.' }
-    $refereeBundle = Join-Path $projectRoot 'services/game-server/dist/referee.bundle.mjs'
-    if (-not (Test-Path -LiteralPath $refereeBundle -PathType Leaf)) {
-        throw 'Pacote do arbitro nao gerado (services/game-server/dist/referee.bundle.mjs).'
+
+    if (-not (Test-Path -LiteralPath (Join-Path $projectRoot 'client/index.html'))) {
+        throw 'Cliente compilado ausente. Restaure os assets versionados antes de publicar.'
     }
 
     if (Test-Path -LiteralPath $releaseRoot) {
@@ -39,9 +41,20 @@ try {
         Copy-Item -LiteralPath (Join-Path $projectRoot $file) -Destination (Join-Path $releaseRoot $file)
     }
 
-    foreach ($directory in @('api', 'client')) {
+    foreach ($directory in @('api', 'client', 'starter-decks')) {
         Copy-Item -LiteralPath (Join-Path $projectRoot $directory) -Destination (Join-Path $releaseRoot $directory) -Recurse
     }
+
+    $starterImages = Join-Path $releaseRoot 'images/starter-decks'
+    $inkImages = Join-Path $releaseRoot 'images/icons'
+    New-Item -ItemType Directory -Path $inkImages -Force | Out-Null
+    foreach ($ink in @('amber','amethyst','emerald','ruby','sapphire','steel')) {
+        Copy-Item -LiteralPath (Join-Path $projectRoot "images/icons/$ink.webp") -Destination $inkImages
+    }
+    New-Item -ItemType Directory -Path $starterImages -Force | Out-Null
+    Get-ChildItem -LiteralPath (Join-Path $projectRoot 'images/starter-decks') -File |
+        Where-Object { $_.Extension -in @('.jpg', '.png', '.webp') } |
+        Copy-Item -Destination $starterImages
 
     # Only runtime assets: no LESS sources, test fixtures or dependency directories.
     foreach ($directory in @('admin', 'assets/fontawesome')) {
@@ -56,17 +69,19 @@ try {
             }
     }
 
-    # O PHP executa o arbitro pelo Node; o navegador nunca deve acessar a pasta.
-    $releaseReferee = Join-Path $releaseRoot 'services/game-server/dist'
-    New-Item -ItemType Directory -Path $releaseReferee -Force | Out-Null
-    Copy-Item -LiteralPath $refereeBundle -Destination $releaseReferee
-    Set-Content -LiteralPath (Join-Path $releaseRoot 'services/.htaccess') -Value 'Require all denied' -Encoding ascii
-
-    $releaseConfig = Join-Path $releaseRoot 'config'
-    New-Item -ItemType Directory -Path $releaseConfig -Force | Out-Null
-    Get-ChildItem -LiteralPath (Join-Path $projectRoot 'config') -File -Filter '*.php' |
-        Where-Object { $_.Name -notlike '*.example.php' -and $_.Name -ne 'database.credentials.php' } |
-        Copy-Item -Destination $releaseConfig
+    # Configuracao e motor de regras, com as subpastas (config/game e o arbitro das
+    # partidas online): copiar so a raiz deixaria o servidor sem o motor.
+    $configRoot = Join-Path $projectRoot 'config'
+    Get-ChildItem -LiteralPath $configRoot -File -Recurse -Filter '*.php' |
+        Where-Object { $_.Name -notlike '*.example.php' -and $_.Name -notlike '*.credentials.php' } |
+        ForEach-Object {
+            $relative = $_.FullName.Substring($projectRoot.Length + 1)
+            $target = Join-Path $releaseRoot $relative
+            New-Item -ItemType Directory -Path (Split-Path -Parent $target) -Force | Out-Null
+            Copy-Item -LiteralPath $_.FullName -Destination $target
+        }
+    $engineFiles = @(Get-ChildItem -LiteralPath (Join-Path $releaseRoot 'config/game') -File -Filter '*.php' -ErrorAction SilentlyContinue)
+    if ($engineFiles.Count -lt 4) { throw 'Release bloqueada: motor de regras ausente em config/game.' }
 
     $files = @(Get-ChildItem -LiteralPath $releaseRoot -File -Recurse)
     $forbiddenFiles = @($files | Where-Object {

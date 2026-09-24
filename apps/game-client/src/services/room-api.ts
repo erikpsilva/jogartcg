@@ -1,5 +1,5 @@
 import type { GameAction, GameState, LegalAction } from '@jogartcg/game-core';
-import { API_BASE_URL } from '../config/api';
+import { apiUrl } from '../config/api';
 
 export type RoomStatus = 'aguardando' | 'em_jogo' | 'encerrada';
 
@@ -51,7 +51,7 @@ export class RoomApiError extends Error {
 
 async function request<T>(path: string, options: RequestInit & { csrf?: string } = {}): Promise<T> {
   const { csrf, headers, ...rest } = options;
-  const response = await fetch(`${API_BASE_URL}/rooms${path}`, {
+  const response = await fetch(apiUrl(`/rooms${path}`), {
     ...rest,
     credentials: 'include',
     headers: {
