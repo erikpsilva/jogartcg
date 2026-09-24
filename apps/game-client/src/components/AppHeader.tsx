@@ -5,6 +5,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useInstallApp } from '../pwa/InstallContext';
 import { useSiteSettings } from '../settings/SiteSettingsContext';
 import { WalletIndicators } from './Shop';
+import { RewardShortcuts } from './RewardShortcuts';
 
 export function AppHeader({ clientBase, starterActive = false }: { clientBase?: string; starterActive?: boolean } = {}) {
   const NavLink = (props: ComponentProps<typeof RouterNavLink>) => clientBase
@@ -71,14 +72,16 @@ export function AppHeader({ clientBase, starterActive = false }: { clientBase?: 
   return <>
     <header ref={headerRef} className="site-header">
       <div className="site-header__inner">
-        <NavLink className="brand" to="/cartas" aria-label="Jogar TCG — catálogo"><img src={`${clientBase || './'}brand/logo-jogar-tcg.png`} alt="Jogar TCG" /></NavLink>
+        <div className="site-header__brand-group">
+          <NavLink className="brand" to="/cartas" aria-label="Jogar TCG — catálogo"><img src={`${clientBase || './'}brand/logo-jogar-tcg.png`} alt="Jogar TCG" /></NavLink>
+          <button className="install-button" type="button" disabled={installed} onClick={showInstallSuggestion} aria-label={installed ? 'Aplicativo instalado' : 'Instalar aplicativo'} title={installed ? 'Aplicativo instalado' : 'Instalar aplicativo'}><span aria-hidden="true">{installed ? '✓' : '↓'}</span><span className="install-button__label">{installed ? 'Instalado' : 'Instalar'}</span></button>
+        </div>
         <nav className="site-nav site-sidebar" aria-label="Navegação principal">
           {user?.shop_access && <NavLink to="/loja">Loja</NavLink>}
           {playEnabled && <NavLink to="/jogar" onClick={showInstallSuggestion}>Modo Versus</NavLink>}<NavLink to="/meus-decks">Meus decks</NavLink><NavLink to="/cartas">Catálogo</NavLink><a href="../starter-decks/" className={starterActive ? 'active' : undefined} aria-current={starterActive ? 'page' : undefined} data-native-starters="true">Starter Deck</a><NavLink to="/gameplay">Aventura Lorcana</NavLink>
         </nav>
         <div className="site-header__actions">
-          <button className="install-button" type="button" disabled={installed} onClick={showInstallSuggestion}><span aria-hidden="true">↓</span>{installed ? 'Instalado' : 'Instalar'}</button>
-          <NavLink className="button button--primary" to="/meus-decks"><span>+</span> Montar deck</NavLink>
+          {user && <RewardShortcuts assetBase={clientBase || './'} />}
           {user && <WalletIndicators assetBase={clientBase || './'} />}
           <div className="site-header__account">{!loading && user ? (
             <details ref={userMenuRef} className="user-menu">

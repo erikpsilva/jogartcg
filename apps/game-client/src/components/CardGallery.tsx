@@ -2,17 +2,24 @@ import { useState } from 'react';
 import type { CardPrinting } from '../services/catalog-api';
 
 /** Faixa de imagens que desliza; so carrega a arte visivel e a seguinte. */
-function GalleryTrack({ printings, index, alt }: { printings: CardPrinting[]; index: number; alt: string }) {
+function GalleryTrack({ printings, index, alt, foil = false }: { printings: CardPrinting[]; index: number; alt: string; foil?: boolean }) {
   const [failed, setFailed] = useState<Record<number, boolean>>({});
   return <div className="card-gallery__viewport">
     <div className="card-gallery__track" style={{ transform: `translateX(-${index * 100}%)` }}>
       {printings.map((printing, position) => {
         const source = printing.image.full || printing.image.thumbnail;
         const near = position === index || position === (index + 1) % printings.length;
-        return <div className="card-gallery__slide" key={printing.id} aria-hidden={position !== index}>
+        return <div className={`card-gallery__slide${foil && source && !failed[printing.id] ? ' card-foil' : ''}`} key={printing.id} aria-hidden={position !== index}
+          onPointerMove={foil ? (event) => {
+            const bounds = event.currentTarget.getBoundingClientRect();
+            event.currentTarget.style.setProperty('--foil-x', `${Math.max(0, Math.min(100, (event.clientX - bounds.left) / bounds.width * 100))}%`);
+            event.currentTarget.style.setProperty('--foil-y', `${Math.max(0, Math.min(100, (event.clientY - bounds.top) / bounds.height * 100))}%`);
+          } : undefined}
+          onPointerLeave={(event) => { event.currentTarget.style.removeProperty('--foil-x'); event.currentTarget.style.removeProperty('--foil-y'); }}>
           {source && !failed[printing.id]
             ? <img src={source} alt={position === index ? alt : ''} loading={near ? 'eager' : 'lazy'} onError={() => setFailed((current) => ({ ...current, [printing.id]: true }))} />
             : <span className="card-gallery__missing">Imagem indisponível</span>}
+          {foil && source && !failed[printing.id] && <span className="card-foil__glitter" aria-hidden="true" />}
         </div>;
       })}
     </div>
@@ -41,7 +48,7 @@ function GalleryThumbs({ printings, index, onSelect }: { printings: CardPrinting
  * Galeria das artes de uma carta (detalhe da carta e escolha de arte no deck):
  * imagem grande, setas e miniaturas. So troca de arte quando a pessoa escolhe.
  */
-export function CardGallery({ printings, alt, selectedId, onSelect }: { printings: CardPrinting[]; alt: string; selectedId?: number; onSelect?: (printing: CardPrinting) => void }) {
+export function CardGallery({ printings, alt, selectedId, onSelect, foil = false }: { printings: CardPrinting[]; alt: string; selectedId?: number; onSelect?: (printing: CardPrinting) => void; foil?: boolean }) {
   const selectedIndex = Math.max(0, printings.findIndex((printing) => printing.id === selectedId));
   const [ownIndex, setOwnIndex] = useState(selectedIndex);
   const current = selectedId !== undefined ? selectedIndex : Math.min(ownIndex, printings.length - 1);
@@ -52,7 +59,7 @@ export function CardGallery({ printings, alt, selectedId, onSelect }: { printing
   };
   return <div className="card-gallery card-gallery--full">
     <div className="card-gallery__stage">
-      <GalleryTrack printings={printings} index={current} alt={alt} />
+      <GalleryTrack printings={printings} index={current} alt={alt} foil={foil} />
       {printings.length > 1 && <>
         <button type="button" className="card-gallery__arrow card-gallery__arrow--prev" onClick={() => select(current - 1)} aria-label="Arte anterior">‹</button>
         <button type="button" className="card-gallery__arrow card-gallery__arrow--next" onClick={() => select(current + 1)} aria-label="Próxima arte">›</button>

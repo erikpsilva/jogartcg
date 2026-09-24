@@ -189,6 +189,7 @@ export function DeckBuilderPage() {
   return (
     <div className="deck-builder page-container">
       <header className="builder-heading"><div><span className="eyebrow"><i /> Deck Lab</span><h1>Monte seu deck.</h1><p>Explore, importe e salve sua lista. Rascunhos incompletos também ficam guardados.</p></div><div className="test-profile"><span className="test-profile__avatar">{user?.nome.charAt(0)}{user?.sobrenome.charAt(0)}</span><div><small>Conta conectada</small><strong>{user?.nome} {user?.sobrenome}</strong></div><Link to="/meus-decks">Meus decks</Link></div></header>
+      <div className="deck-mobile-overview"><div><strong>{name || 'Seu deck'}</strong><small>{totalCards} cartas · {entries.length} artes</small></div><button type="button" className="button button--primary" onClick={() => setFullDeckOpen(true)}>Ver deck completo ↗</button></div>
       <section className="deck-setup" aria-label="Configurações do deck">
         <div style={{ gridColumn: '1 / -1' }}><DeckCosmetics deckId={currentId} /></div>
         <label><span>Nome do deck</span><input type="text" maxLength={100} value={name} onChange={(event) => setName(event.target.value)} /></label>

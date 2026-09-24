@@ -255,6 +255,5 @@ export function PlayLobbyPage() {
         : 'A batalha será liberada somente depois que os dois jogadores escolherem um deck válido e confirmarem “Começar”.'}</p>
       {room && <button className="room-preview__leave" disabled={roomBusy} onClick={leaveCurrentRoom}>{room.you?.seat === 1 ? 'Fechar sala' : 'Sair da sala'}</button>}
     </section>}
-    <Link className="play-lobby__prototype" to="/jogar/mesa-teste">Abrir a mesa de demonstração visual</Link>
   </div>;
 }

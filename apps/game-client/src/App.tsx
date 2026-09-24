@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { ShopPage } from './components/Shop';
 import { InventoryPage } from './pages/InventoryPage';
+import { RewardsPage } from './pages/RewardsPage';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
 import { AppFooter } from './components/AppFooter';
@@ -45,6 +46,7 @@ export function App() {
           <Route path="/" element={<Navigate to="/cartas" replace />} />
           <Route path="/cartas" element={<CatalogPage />} />
           <Route path="/loja" element={<ShopAccessRoute />} />
+          <Route path="/recompensas" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
           <Route path="/gameplay" element={<AdventureLandingPage />} />
           <Route path="/gameplay/mapa" element={<AdventureMapPage />} />
           <Route path="/cartas/:cardId" element={<CardDetailPage />} />

@@ -48,3 +48,116 @@
 }
 @media(max-width:700px){.app-shell:not(.app-shell--game){padding-top:var(--site-header-height,111px)}#shared-site-header{height:var(--site-header-height,111px)}}
 @media(prefers-reduced-motion:reduce){.site-header .site-sidebar a{transition:none}}
+/* Ariel foil preview: decorative layers preserve the original card image. */
+.card-gallery__slide.card-foil {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  border-radius: 4%;
+}
+.card-foil::before, .card-foil::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.card-foil::before {
+  z-index: 1;
+  background: repeating-linear-gradient(120deg,
+    #ffe6ac 0%, #a5f9ed 15%, #bfb0ff 30%, #ffb8df 45%, #fff0b7 60%);
+  background-size: 250% 250%;
+  background-position: var(--foil-x, 50%) var(--foil-y, 50%);
+  mix-blend-mode: color;
+  opacity: .32;
+}
+.card-foil::after {
+  z-index: 2;
+  background:
+    radial-gradient(ellipse at var(--foil-x, 50%) var(--foil-y, 35%), #fff8df88, transparent 48%),
+    linear-gradient(115deg, transparent 30%, #d7faff22 40%, #ffffff99 48%, #fbe4ff44 54%, transparent 65%);
+  background-size: 100% 100%, 300% 100%;
+  mix-blend-mode: screen;
+  opacity: .5;
+  animation: ariel-foil-sheen 6s ease-in-out infinite alternate;
+}
+.foil-preview-controls { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 18px; }
+/* Fine foil flakes: two different grain scales prevent a uniform dot pattern. */
+.card-foil::before { opacity: .46; }
+.card-foil::after { opacity: .7; }
+.card-foil__glitter {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  overflow: hidden;
+  mix-blend-mode: screen;
+  -webkit-mask-image: linear-gradient(#000 0%, #000 60%, #0005 76%, #0007 100%);
+  mask-image: linear-gradient(#000 0%, #000 60%, #0005 76%, #0007 100%);
+}
+.card-foil__glitter::before, .card-foil__glitter::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, #fffef2 0 .7px, transparent 1.3px),
+    radial-gradient(circle, #a6faff 0 .6px, transparent 1.2px),
+    radial-gradient(circle, #ffdf87 0 .8px, transparent 1.5px),
+    radial-gradient(circle, #ffd3ff 0 .5px, transparent 1.1px);
+  background-size: 13px 19px, 23px 17px, 31px 29px, 19px 37px;
+  background-position: 2px 5px, 11px 3px, 7px 17px, 13px 23px;
+  opacity: .52;
+  animation: ariel-glitter 3.8s ease-in-out infinite alternate;
+}
+.card-foil__glitter::after {
+  background-size: 43px 59px, 67px 41px, 79px 71px, 53px 83px;
+  background-position: 17px 21px, 9px 33px, 29px 11px, 37px 53px;
+  filter: drop-shadow(0 0 2px #fff5c5);
+  animation-delay: -2.3s;
+}
+.card-foil:hover .card-foil__glitter,
+.card-foil:active .card-foil__glitter { filter: brightness(1.3); }
+@keyframes ariel-glitter {
+  0% { opacity: .28; }
+  50% { opacity: .7; }
+  100% { opacity: .45; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-foil__glitter::before, .card-foil__glitter::after { animation: none; }
+}
+.foil-preview-controls button[aria-pressed="true"] { border-color: #ffcf34; color: #ffdf79; background: #302711; }
+@keyframes ariel-foil-sheen {
+  from { background-position: center, 100% 0; }
+  to { background-position: center, 0% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-foil::after { animation: none; }
+}
+/* Two compact mobile rows: account above, install and rewards below. */
+@media(max-width:700px){
+ .site-header .site-header__inner{grid-template-columns:56px minmax(0,1fr) auto;gap:5px;padding:6px 0}
+ .site-header .brand,.site-header .brand img{width:52px;height:36px}
+ .site-header .install-button{min-height:34px;font-size:8px;padding:3px 2px}
+ .site-header .reward-shortcuts{grid-column:2/4;grid-row:2;gap:4px;width:100%;margin:0}
+ .site-header .reward-shortcut{min-height:34px;padding:2px 4px;gap:3px;border-radius:6px}
+ .site-header .reward-shortcut img{width:24px;height:28px}
+ .site-header .reward-shortcut strong{font-size:9px;line-height:1.15}
+ .site-header .reward-shortcut small{display:none}
+ .site-header .reward-shortcut i{width:12px;height:12px;right:-2px;top:-3px;font-size:7px}
+}
+@media(max-width:360px){
+ .site-header .reward-shortcut img{width:19px;height:24px}
+ .site-header .reward-shortcut strong{font-size:8px}
+}
+/* Install stays attached to the brand, independent of account actions. */
+.site-header .site-header__brand-group{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.site-header .site-header__brand-group .brand{margin:0}
+.site-header .site-header__brand-group .install-button{display:inline-flex;align-items:center;justify-content:center;width:auto;min-height:28px;padding:4px 7px;font-size:9px;gap:4px;border-radius:5px}
+@media(max-width:700px){
+ .site-header .site-header__inner{grid-template-columns:86px minmax(0,1fr) auto}
+ .site-header .site-header__brand-group{grid-column:1;grid-row:1;gap:4px}
+ .site-header .site-header__brand-group .install-button{width:28px;height:28px;min-height:28px;padding:0;font-size:16px}
+ .site-header .site-header__brand-group .install-button__label{display:none}
+ .site-header .reward-shortcuts{grid-column:1/-1;grid-row:2}
+}

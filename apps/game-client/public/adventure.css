@@ -40,3 +40,29 @@
 .adventure-map-toolbar>span{font-size:12px;letter-spacing:.1em;text-transform:uppercase}.adventure-map-exit{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:0 14px;border:1px solid #8d723f;border-radius:7px;color:#f7e7c6;text-decoration:none;font-size:12px;font-weight:700;background:#111b2b}
 .adventure--map .adventure__viewport{margin-top:10px}.adventure-access-loading{padding:32px;color:#ead7a9}
 @media(max-width:650px){.adventure-offer{padding:22px 18px}.adventure--landing{padding-top:32px}.adventure.adventure--map{padding:0 6px 8px}.adventure-map-toolbar{padding:6px 0}}
+/* Compact campaign canvas: fit the full map, including low-height phones. */
+@media (max-width:1100px), (max-height:600px) and (pointer:coarse) {
+  .adventure.adventure--map { padding:0 6px 6px; box-sizing:border-box; }
+  .adventure--map .adventure-map-toolbar { gap:8px; padding:4px 0; flex-wrap:nowrap; min-height:42px; }
+  .adventure--map .adventure-map-exit { min-height:32px; padding:0 9px; font-size:10px; flex-shrink:0; }
+  .adventure--map .adventure-map-toolbar>span { font-size:9px; letter-spacing:.06em; }
+  .adventure--map .shop-wallet { gap:5px; flex-shrink:0; }
+  .adventure--map .shop-wallet>span { min-width:0; padding:3px 6px; grid-template-columns:22px auto; gap:0 4px; border-radius:6px; }
+  .adventure--map .shop-wallet .currency-icon { width:22px; height:22px; }
+  .adventure--map .shop-wallet small { font-size:8px; }
+  .adventure--map .shop-wallet b { font-size:11px; }
+  .adventure.adventure--map .adventure__viewport { width:100%; margin-top:4px; border-radius:8px; }
+  .adventure.adventure--map .adventure__map { min-width:0; width:100%; container-type:inline-size; }
+  .adventure--map .adventure__chapter { min-height:24px; padding:3px 2px; border-radius:5px; }
+  .adventure--map .adventure__chapter strong { font-size:clamp(7px,1.45cqw,12px); }
+  .adventure--map .adventure__chapter small { font-size:clamp(6px,1.1cqw,9px); margin-top:2px; }
+  .adventure--map .adventure__chapter-number { width:clamp(14px,2.8cqw,22px); height:clamp(14px,2.8cqw,22px); top:-12px; font-size:clamp(7px,1.3cqw,10px); }
+  .adventure--map .adventure__hero span { font-size:clamp(6px,1.25cqw,10px); padding:2px 5px; }
+}
+@media (orientation:landscape) and (max-width:1100px), (orientation:landscape) and (max-height:600px) and (pointer:coarse) {
+  .adventure.adventure--map .adventure__viewport { width:min(100%,calc((100dvh - 60px) * 1.5)); }
+}
+@media(max-width:500px) {
+  .adventure--map .adventure__chapter small { display:none; }
+  .adventure--map .adventure__hero span { max-width:110px; white-space:normal; }
+}

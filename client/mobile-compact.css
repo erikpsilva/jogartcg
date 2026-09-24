@@ -1,0 +1,118 @@
+/* Compact site UI only: battle and campaign map keep their own sizing. */
+@media(max-width:700px){
+ .app-shell:not(.app-shell--game) .site-main,.starter-content{font-size:13px;line-height:1.45}
+ .app-shell:not(.app-shell--game) .site-main h1,.starter-content .intro h1{font-size:26px;line-height:1.08;letter-spacing:-.025em;margin:8px 0}
+ .app-shell:not(.app-shell--game) .site-main h2,.starter-content h2{font-size:17px;line-height:1.25}
+ .app-shell:not(.app-shell--game) .site-main h3{font-size:15px;line-height:1.3}
+ .app-shell:not(.app-shell--game) .site-main p,.starter-content p{font-size:13px;line-height:1.45;margin-block:7px}
+ .app-shell:not(.app-shell--game) .site-main .eyebrow,.starter-content .eyebrow{font-size:10px;letter-spacing:.12em}
+ .app-shell:not(.app-shell--game) .site-main .page-container{width:calc(100% - 24px);padding-top:20px;padding-bottom:24px}
+ .app-shell:not(.app-shell--game) .site-main :is(.builder-heading,.registration-heading,.catalog-hero,.auth-intro){margin-bottom:18px;gap:12px}
+ .app-shell:not(.app-shell--game) .site-main .catalog-hero{padding-block:8px 16px;min-height:0}
+ .app-shell:not(.app-shell--game) .site-main :is(.button,.shop-cta,.shop-item__actions button,.deck-cosmetics>button),.starter-content .btn{font-size:11px;line-height:1.2;padding:9px 11px;min-height:36px}
+ .app-shell:not(.app-shell--game) .site-main :is(label,.format-rules,.format-rules strong){font-size:12px}
+ /* Keep editable fields at 16px to avoid automatic iOS focus zoom. */
+ .app-shell:not(.app-shell--game) .site-main :is(input:not([type=checkbox]):not([type=radio]),select,textarea),.starter-content :is(input,select){font-size:16px;padding:8px 10px;min-height:38px}
+ .app-shell:not(.app-shell--game) .site-main :is(.auth-card,.registration-card,.deck-setup,.builder-workspace,.deck-panel,.shop-item__body,.deck-cosmetics){padding:14px;gap:12px}
+ .app-shell:not(.app-shell--game) .site-main :is(.registration-grid,.saved-decks-grid,.shop-grid,.catalog-tools){gap:12px}
+ .app-shell:not(.app-shell--game) .site-main .saved-deck-card{padding:14px;gap:8px;min-height:0}
+ .app-shell:not(.app-shell--game) .site-main .saved-deck-card h2{font-size:16px;margin:2px 0}
+ .app-shell:not(.app-shell--game) .site-main .saved-deck-card>div{gap:6px;flex-wrap:wrap}
+ .app-shell:not(.app-shell--game) .site-main .saved-deck-card>div>.button{flex:1;padding:8px 7px;white-space:nowrap;font-size:10px}
+ .app-shell:not(.app-shell--game) .site-main .deck-status{font-size:10px;padding:4px 7px}
+ .app-shell:not(.app-shell--game) .site-main :is(.feedback,.shop-demo,.shop-notice,.shop-confirm,.empty-state,.decks-empty){padding:14px;font-size:12px;margin-block:12px}
+ .app-shell:not(.app-shell--game) .site-main :is(.deck-empty,.deck-import){min-height:0}
+ .app-shell:not(.app-shell--game) .site-main .shop-tabs{gap:6px;margin:14px 0}
+ .app-shell:not(.app-shell--game) .site-main .shop-tabs button{font-size:11px;padding:8px 10px;min-height:36px}
+ .app-shell:not(.app-shell--game) .site-main .inventory-characters{margin-block:16px;gap:8px}
+ .app-shell:not(.app-shell--game) .site-main .inventory-character{padding:10px;gap:8px;min-height:200px}
+ .app-shell:not(.app-shell--game) .site-main .inventory-character h2{font-size:14px}
+ .app-shell:not(.app-shell--game) .site-main .inventory-character p{font-size:11px}
+ .app-shell:not(.app-shell--game) .site-main .inventory-character img{height:115px}
+ .app-shell:not(.app-shell--game) .site-main .card-detail__layout{gap:18px}
+ .app-shell:not(.app-shell--game) .site-main :is(.translation-panel,.original-panel){padding:12px}
+ .app-shell:not(.app-shell--game) .site-main .detail-tags{gap:6px}
+ .app-shell:not(.app-shell--game) .site-main .detail-tags>span{font-size:10px;padding:7px}
+ .app-shell:not(.app-shell--game) .site-main .detail-stats{gap:6px}
+ .app-shell:not(.app-shell--game) .site-main .detail-stats>div{padding:10px 6px}
+ .app-shell:not(.app-shell--game) .site-main .detail-stats dt{font-size:10px}
+ .app-shell:not(.app-shell--game) .site-main .detail-stats dd{font-size:18px}
+ .app-shell:not(.app-shell--game) .site-main .profile-photo-field{gap:10px;padding-bottom:14px}
+ .app-shell:not(.app-shell--game) .site-main .profile-photo-field__preview{width:56px;height:56px}
+ .app-shell:not(.app-shell--game) .site-footer{padding-block:24px;font-size:12px}
+ .app-shell:not(.app-shell--game) .site-footer p{font-size:12px;line-height:1.5}
+ .starter-content main{padding:20px 12px}
+ .starter-content .intro{margin-bottom:18px}
+ .starter-content .filters{padding:12px;gap:8px;margin-block:14px}
+ .starter-content .starter-grid{gap:10px}
+ .starter-content .cover-link{height:165px;padding:10px}
+ .starter-content .starter-body{padding:10px}
+ .starter-content .starter h2{font-size:14px;margin-bottom:8px}
+ .starter-content .starter-body .eyebrow{min-height:0;margin-bottom:6px;font-size:9px}
+ .starter-content .inks{margin-bottom:10px}
+ .starter-content .starter-actions{gap:5px}
+ .starter-content .starter-actions>*{font-size:10px;min-height:36px;padding:8px 6px;min-width:0}
+ .starter-content dialog{padding:12px}
+ .starter-content .dialog-header{gap:10px;margin-bottom:12px;padding-bottom:10px}
+ .starter-content .dialog-header h2{font-size:18px}
+ .starter-content .detail-intro{gap:10px;margin-bottom:14px}
+ .starter-content .deck-cards{gap:10px}
+ .starter-content #zoom-description{padding:12px}
+ .starter-content #zoom-description h2{font-size:17px}
+ .starter-content #zoom-description p{font-size:12px}
+}
+/* Starter filters: no stretching the collection selector to match color rows. */
+@media(max-width:700px){
+ .starter-content .filters{grid-template-columns:minmax(0,1fr);align-items:start;gap:12px;padding:12px;border-color:#363d49;background:linear-gradient(145deg,#141a24,#0b1018);border-radius:10px}
+ .starter-content .filters>label{grid-column:1/-1;min-width:0;align-content:start;gap:6px;font-size:10px;letter-spacing:.05em}
+ .starter-content .filters input,.starter-content .filters select:not([hidden]){height:40px;min-height:40px;box-sizing:border-box;margin:0;border-radius:6px;width:100%;font-weight:400;letter-spacing:normal}
+ .starter-content .filters select[hidden]{display:none}
+ .starter-content .filters .starter-ink-options{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:5px;min-width:0}
+ .starter-content .filters .starter-ink-options>button{display:flex;align-items:center;justify-content:center;min-width:0;min-height:48px;margin:0;padding:5px 2px;border:1px solid #3c4658;border-radius:6px;background:#101824;color:#cbd6e6;font-size:10px;line-height:1.2;letter-spacing:normal}
+ .starter-content .filters .starter-ink-options>button:first-child{grid-column:1/-1;min-height:30px;padding:5px}
+ .starter-content .filters .starter-ink-options>button[aria-pressed=true]{background:#352b12;border-color:#ebc447;color:#ffe69a;box-shadow:inset 0 0 12px #e6bf3912}
+ .starter-content .filters .starter-ink-options .lorcana-inks{gap:0;margin:0}
+ .starter-content .filters .starter-ink-options .lorcana-ink{gap:3px;min-width:0}
+ .starter-content .filters .starter-ink-options .lorcana-ink img{width:19px;height:22px}
+ .starter-content .filters .starter-ink-options .lorcana-ink>span{font-size:8px;letter-spacing:0}
+ .starter-content .filters .starter-ink-options>button:focus-visible{outline:2px solid #ffe18a;outline-offset:2px}
+ .starter-content #count{font-size:11px;margin:10px 0}
+}
+/* Compact versus cards: icon beside the heading, no empty vertical rows. */
+@media(max-width:700px){
+ .app-shell:not(.app-shell--game) .play-lobby .play-modes{gap:9px;margin:14px 0}
+ .app-shell:not(.app-shell--game) .play-lobby .play-mode{grid-template-columns:24px minmax(0,1fr);align-items:center;gap:7px 8px;padding:13px;min-height:0;border-radius:9px}
+ .app-shell:not(.app-shell--game) .play-lobby .play-mode>span{grid-column:1;grid-row:1;font-size:24px;line-height:1}
+ .app-shell:not(.app-shell--game) .play-lobby .play-mode>strong{grid-column:2;grid-row:1;font-size:16px;line-height:1.2}
+ .app-shell:not(.app-shell--game) .play-lobby .play-mode>p{grid-column:1/-1;margin:0;font-size:12px;line-height:1.4}
+ .app-shell:not(.app-shell--game) .play-lobby .play-mode>b{grid-column:1/-1;font-size:11px;line-height:1.4;margin-top:2px}
+}
+/* Room setup must shrink with the viewport, even with long deck names. */
+@media(max-width:700px){
+ .app-shell:not(.app-shell--game) .play-lobby .room-preview{box-sizing:border-box;width:100%;max-width:100%;min-width:0;margin-top:14px;padding:12px;border-radius:10px;scroll-margin-top:calc(var(--site-header-height,100px) + 10px)}
+ .app-shell:not(.app-shell--game) .play-lobby .room-preview__setup{grid-template-columns:minmax(0,1fr);gap:12px;margin:14px 0}
+ .app-shell:not(.app-shell--game) .play-lobby .room-preview__setup>*,.app-shell:not(.app-shell--game) .play-lobby .room-code{min-width:0;max-width:100%;gap:6px;align-content:start}
+ .app-shell:not(.app-shell--game) .play-lobby .room-preview :is(input,select,button){box-sizing:border-box;min-width:0;max-width:100%}
+ .app-shell:not(.app-shell--game) .play-lobby .room-preview__setup :is(input,select){display:block;width:100%;height:40px;border-radius:6px}
+ .app-shell:not(.app-shell--game) .play-lobby .room-preview__setup .button{width:100%;justify-self:stretch;white-space:normal}
+ .app-shell:not(.app-shell--game) .play-lobby .room-code strong{font-size:23px;letter-spacing:.06em;line-height:1.3}
+ .app-shell:not(.app-shell--game) .play-lobby .room-code small{font-size:11px}
+ .app-shell:not(.app-shell--game) .play-lobby .room-players{grid-template-columns:minmax(0,1fr);gap:8px;min-width:0}
+ .app-shell:not(.app-shell--game) .play-lobby .room-players article{min-width:0;padding:11px;gap:5px;border-radius:7px;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+ .app-shell:not(.app-shell--game) .play-lobby .room-players article>span{font-size:10px;grid-column:1}
+ .app-shell:not(.app-shell--game) .play-lobby .room-players article>strong{font-size:13px;grid-column:1;overflow-wrap:anywhere}
+ .app-shell:not(.app-shell--game) .play-lobby .room-players article>small{font-size:10px;line-height:1.4;grid-column:1;overflow-wrap:anywhere}
+ .app-shell:not(.app-shell--game) .play-lobby .room-players button{grid-column:2;grid-row:1/4;margin:0;padding:8px;min-height:36px;font-size:11px;border-radius:5px}
+ .app-shell:not(.app-shell--game) .play-lobby .room-preview__status{font-size:11px;line-height:1.4;margin:10px 0 0}
+ .app-shell:not(.app-shell--game) .play-lobby .room-preview__leave{margin-top:10px;font-size:11px;padding:8px 10px;min-height:36px}
+}
+.deck-mobile-overview{display:none}
+@media(max-width:700px){
+ .deck-builder .deck-mobile-overview{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:var(--site-header-height,100px);z-index:25;padding:10px;margin:0 0 14px;border:1px solid #987c35;border-radius:8px;background:#111722;box-shadow:0 5px 16px #0006}
+ .deck-mobile-overview>div{min-width:0;display:grid;gap:3px}
+ .deck-mobile-overview strong{font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ .deck-mobile-overview small{font-size:10px;color:#b2bed2}
+ .deck-mobile-overview>.button{flex-shrink:0}
+ .deck-builder .deck-fullscreen{z-index:250}
+ .deck-builder .card-preview{z-index:260}
+}

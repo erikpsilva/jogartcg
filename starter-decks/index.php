@@ -23,7 +23,9 @@ header('Content-Type: text/html; charset=utf-8');
   <script type="module" src="<?= esc($base) ?>/client/assets/shared-header-v1.js"></script>
   <link rel="stylesheet" href="<?= esc($base) ?>/client/ink-colors.css?v=1">
   <link rel="stylesheet" href="<?= esc($base) ?>/client/shop.css?v=1">
+  <link rel="stylesheet" href="<?= esc($base) ?>/client/rewards.css?v=1">
   <link rel="stylesheet" href="<?= esc($base) ?>/client/site-shell.css?v=1">
+  <link rel="stylesheet" href="<?= esc($base) ?>/client/mobile-compact.css?v=1">
   <script src="<?= esc($base) ?>/starter-decks/app.js?v=5" defer></script>
 </head>
 <body data-base="<?= esc($base) ?>">

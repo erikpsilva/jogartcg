@@ -181,8 +181,8 @@ export function MatchTable({
       <div className="game-board-mobile-round"><span>Turno {state.turn}</span><strong aria-live="polite">{statusText}</strong></div>
       <div className="board-skin" aria-hidden="true"><span className="board-skin__opponent" /><span className="board-skin__middle" /><span className="board-skin__player" /></div>
       <div className="board-ornament board-ornament--top" />
-      <img className="battle-character battle-character--player" src="./adventure/mickey-idle.gif" alt="Seu personagem: Mickey Knight" draggable={false} />
-      <img className="battle-character battle-character--opponent" src="./adventure/mickey-idle.gif" alt="Personagem do adversário: Mickey Knight" draggable={false} />
+      <div className="battle-character battle-character--player"><img src="./adventure/mickey-idle.gif" alt="Seu personagem: Mickey Knight" draggable={false} /></div>
+      <div className="battle-character battle-character--opponent"><img src="./adventure/mickey-idle.gif" alt="Personagem do adversário: Mickey Knight" draggable={false} /></div>
       <div className="opponent-hand" aria-label={`Mão ${opponentPossessive}: ${bot.hand.length} cartas`}>{bot.hand.map((entry, index) => <MatchCard back={botBack} key={entry.iid} hidden style={fanStyle(index, bot.hand.length, true)} />)}</div>
       <span className="field-zone-label field-zone-label--opponent">Campo do oponente</span>
       <div className="opponent-zone">{renderField('bot')}</div>
