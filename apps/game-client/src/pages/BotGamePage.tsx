@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { botThinkingDelay } from '../game/bot-pacing';
 import { Link, useNavigate } from 'react-router-dom';
 import { activeDecisionPlayer, applyAction, chooseBotAction, getLegalActions, type GameAction } from '@jogartcg/game-core';
 import { useAuth } from '../auth/AuthContext';
@@ -14,6 +15,7 @@ export function BotGamePage() {
   const [match, setMatch] = useState<BotMatch | null>(() => user ? loadBotMatch(user.id) : null);
   const [error, setError] = useState('');
   const [botError, setBotError] = useState('');
+  const lastBotTurn = useRef<number | null>(null);
   const state = match?.state;
   const decisionPlayer = state ? activeDecisionPlayer(state) : null;
   const legal = useMemo(() => state ? getLegalActions(state, 'player') : [], [state]);
@@ -30,9 +32,10 @@ export function BotGamePage() {
       try {
         const action = chooseBotAction(state);
         const next = applyAction(state, action);
+        lastBotTurn.current = state.turn;
         setMatch((current) => current && current.state === state ? { ...current, state: next } : current);
       } catch (reason) { setBotError(reason instanceof Error ? reason.message : 'O bot não conseguiu concluir a jogada.'); }
-    }, 650);
+    }, botThinkingDelay(lastBotTurn.current !== state.turn, !!state.pending));
     return () => window.clearTimeout(timer);
   }, [state, decisionPlayer, botError, orientationBlocked]);
 

@@ -66,8 +66,12 @@ function adventureBattleAction(PDO $pdo,int $uid,string $operation,array $body):
                 $state=json_decode($row['state_json'],true,512,JSON_THROW_ON_ERROR);
                 if($operation==='action')$state=gameApplySeatAction($state,1,$body['action']??null);
                 elseif($operation!=='bot')throw new RuntimeException('Ação inválida.');
-                // Bounded work per request; UI requests the next bot step if still needed.
-                for($i=0;$i<8&&$state['phase']!=='finished'&&gameActiveDecisionPlayer($state)==='bot';$i++)$state=gameApplyAction($state,adventureBotAction($state));
+                // Exactly one bot decision per request. Never merge a player's move
+                // with an invisible bot reply; the UI presents and paces each state.
+                if($operation==='bot'){
+                    if($state['phase']==='finished'||gameActiveDecisionPlayer($state)!=='bot')throw new RuntimeException('Aguarde a vez do adversário.');
+                    $state=gameApplyAction($state,adventureBotAction($state));
+                }
                 $result=$state['phase']==='finished'?adventureBattleResult($pdo,$uid,(int)$row['id'],(int)$row['phase'],$state,$journey):null;
                 $row['state_json']=json_encode($state,JSON_THROW_ON_ERROR);$row['revision']=(int)$row['revision']+1;$row['result_json']=$result?json_encode($result):null;
                 $pdo->prepare('UPDATE adventure_battles SET state_json=?,revision=?,result_json=?,finished_at=IF(? IS NULL,NULL,CURRENT_TIMESTAMP) WHERE id=?')->execute([$row['state_json'],$row['revision'],$row['result_json'],$row['result_json'],$row['id']]);

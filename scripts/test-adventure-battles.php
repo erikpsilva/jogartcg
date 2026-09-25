@@ -53,4 +53,16 @@ foreach(adventureEnemies() as $enemy){
  for($i=0;$i<1800&&$state['phase']!=='finished';$i++)$state=gameApplyAction($state,adventureBotAction($state));
  battleCheck($state['phase']==='finished','Partida completa sem fixture contra '.$enemy['name'].' em '.$i.' ações');
 }
+$b=adventureBattleAction($pdo,1,'start',['phase'=>1]);
+$state=json_decode($pdo->query('SELECT state_json FROM adventure_battles WHERE id='.(int)$b['id'])->fetchColumn(),true);
+for($i=0;$i<20&&($state['phase']!=='main'||$state['activePlayer']!=='player'||$state['pending']);$i++)$state=gameApplyAction($state,adventureBotAction($state));
+$pdo->prepare('UPDATE adventure_battles SET state_json=? WHERE id=?')->execute([json_encode($state),$b['id']]);
+$action=['type'=>'endTurn','player'=>'player'];$expected=gameApplySeatAction($state,1,$action);
+$b=adventureBattleAction($pdo,1,'action',['id'=>$b['id'],'revision'=>0,'action'=>$action]);
+$saved=json_decode($pdo->query('SELECT state_json FROM adventure_battles WHERE id='.(int)$b['id'])->fetchColumn(),true);
+battleCheck($saved===$expected,'Jogada humana não executa resposta invisível do bot');
+$expected=gameApplyAction($saved,adventureBotAction($saved));
+$b=adventureBattleAction($pdo,1,'bot',['id'=>$b['id'],'revision'=>$b['revision']]);
+$saved=json_decode($pdo->query('SELECT state_json FROM adventure_battles WHERE id='.(int)$b['id'])->fetchColumn(),true);
+battleCheck($saved===$expected,'Cada chamada do bot executa exatamente uma decisão');
 echo "Testes isolados em tabelas temporárias; contas reais preservadas.\n";

@@ -7,6 +7,7 @@ import {apiUrl} from '../config/api';
 import {MatchTable} from '../components/MatchTable';
 import {BattleOrientationGate,useBattleOrientationBlocked} from '../components/BattleOrientationGate';
 import {chooseInkColorsFromColors} from '../game/bot-session';
+import {botThinkingDelay} from '../game/bot-pacing';
 
 type Battle={id:number;phase:number;revision:number;enemy:string;colors:string[];deck_name:string;view:SeatView;warnings:string[];result:null|{win:boolean;xp:number;gold:number;mission_xp:number}};
 export async function adventureBattleRequest(path:string,token?:string,body?:unknown):Promise<Battle>{
@@ -18,6 +19,7 @@ export function AdventureBattlePage(){
  const blocked=useBattleOrientationBlocked();
  const [battle,setBattle]=useState<Battle|null>(null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
  const lock=useRef(false),active=useRef(true);
+ const lastBotTurn=useRef<number|null>(null);
  useEffect(()=>{active.current=true;adventureBattleRequest(battleId!).then(b=>{if(active.current)setBattle(b);}).catch(e=>{if(active.current)setError(e.message);});return()=>{active.current=false;};},[battleId]);
  async function send(operation:string,action?:GameAction){
   if(!battle||lock.current)return false;lock.current=true;setBusy(true);setError('');
@@ -25,7 +27,7 @@ export function AdventureBattlePage(){
   catch(e){if(active.current){setError(e instanceof Error?e.message:'Não foi possível jogar.');try{setBattle(await adventureBattleRequest(String(battle.id)));}catch{}}return false;}
   finally{lock.current=false;if(active.current)setBusy(false);}
  }
- useEffect(()=>{if(!battle||blocked||busy||error||battle.view.decisionSeat!==2||battle.result)return;const timer=setTimeout(()=>void send('bot'),650);return()=>clearTimeout(timer);},[battle,blocked,busy,error]);
+ useEffect(()=>{if(!battle||blocked||busy||error||battle.view.decisionSeat!==2||battle.result)return;const timer=setTimeout(()=>{lastBotTurn.current=battle.view.state.turn;void send('bot');},botThinkingDelay(lastBotTurn.current!==battle.view.state.turn,!!battle.view.state.pending));return()=>clearTimeout(timer);},[battle,blocked,busy,error]);
  if(!battle)return <div className="page-container"><p role="status">{error||'Abrindo batalha…'}</p><Link to="/gameplay/first-chapter">Voltar ao castelo</Link></div>;
  if(blocked)return <BattleOrientationGate/>;
  const result=battle.result;
