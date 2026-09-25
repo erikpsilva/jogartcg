@@ -3,6 +3,7 @@ import { LivingPlaymat } from '../components/LivingPlaymat';
 import { request } from '../components/Shop';
 import { useAuth } from '../auth/AuthContext';
 type RewardState={days:{day:number;date:string;status:string;cost:number}[];season:{id:string;ends_on:string;xp:number;level:number;premium:boolean};claims:string[]};
+import { RewardCollected } from '../components/RewardCollected';
 const RewardAssetBase = createContext('./');
 
 type Reward = { name: string; image?: string; kind: string; animated?: boolean };
@@ -47,10 +48,10 @@ export function RewardsPage({ initialView = 'daily', compact = false, assetBase 
     </div>}
     {view === 'daily' ? <section aria-label="Login de sete dias">
       <div className="rewards-section-title"><div><span className="eyebrow">SETE DIAS DE DESCOBERTAS</span><h2>Seu próximo tesouro está aqui</h2><p>Sete dias corridos. Faltou ao login? Recupere o prêmio daquele dia por 1.000 gold.</p></div><span className="reward-pill">Calendário de 7 dias</span></div>
-      <div className="daily-rewards">{daily.map((reward, index) => <article key={index} className={`reward-card ${index === 0 ? 'reward-card--current' : ''} ${index === 6 ? 'reward-card--special' : ''}`}>
+      <div className="daily-rewards">{daily.map((reward, index) => <article key={index} className={`reward-card ${state?.days[index]?.status === 'available' ? 'reward-card--current' : ''} ${state?.days[index]?.status==='claimed'?'is-collected':''} ${index === 6 ? 'reward-card--special' : ''}`}>
         <span className="reward-day">DIA {index + 1}{index === 6 && ' · ESPECIAL'}</span><RewardArt reward={reward} />
         <span className="reward-state">{state?.days[index]?.date??'Carregando…'}</span>
-        <button disabled={busy||!state?.days[index]||['claimed','future'].includes(state.days[index].status)} onClick={()=>state?.days[index]?.status==='missed'?setRecoverDay(index+1):void claim('daily',index+1)}>{state?.days[index]?.status==='claimed'?'✓ Resgatado':state?.days[index]?.status==='missed'?'Recuperar · 1.000 gold':state?.days[index]?.status==='available'?'Resgatar':'🔒 Próximo dia'}</button>
+        <button className={`reward-claim-button ${state?.days[index]?.status==='missed'?'reward-claim-button--recover':''}`} disabled={busy||!state?.days[index]||['claimed','future'].includes(state.days[index].status)} onClick={()=>state?.days[index]?.status==='missed'?setRecoverDay(index+1):void claim('daily',index+1)}>{state?.days[index]?.status==='claimed'?<RewardCollected/>:state?.days[index]?.status==='missed'?'Recuperar · 1.000 gold':state?.days[index]?.status==='available'?'Resgatar':'🔒 Próximo dia'}</button>
       </article>)}</div>
       <p>O login é registrado ao acessar o jogo. Dias em que você entrou podem ser resgatados depois, sem custo. Horário de Brasília.</p>
     </section> : <section aria-label="Passe de temporada">
@@ -63,7 +64,9 @@ export function RewardsPage({ initialView = 'daily', compact = false, assetBase 
           {Array.from({ length: 30 }, (_, index) => {
             const free = index === 29 ? foil : index % 5 === 4 ? sleeve : index % 2 ? xp(150) : gold(100);
             const premium = index === 29 ? foil : index % 5 === 4 ? mat : index % 3 === 2 ? sleeve : index % 2 ? xp(500) : gold(500);
-            return <div className="season-level" key={index}><span className="season-level-number">{index + 1}</span><article className="reward-card"><RewardArt reward={free} /><span className="reward-state">{state?.claims.includes(`season:${state.season.id}:free:${index+1}`)?'✓ Resgatado':<button disabled={busy||!state||state.season.level<index+1} onClick={()=>void claim('free',index+1)}>Resgatar</button>}</span></article><article className="reward-card reward-card--premium"><RewardArt reward={premium} /><span className="reward-state">{state?.claims.includes(`season:${state.season.id}:premium:${index+1}`)?'✓ Resgatado':<button disabled={busy||!state?.season.premium||state.season.level<index+1} onClick={()=>void claim('premium',index+1)}>Resgatar premium</button>}</span></article></div>;
+            const freeClaimed=!!state?.claims.includes(`season:${state.season.id}:free:${index+1}`);
+            const premiumClaimed=!!state?.claims.includes(`season:${state.season.id}:premium:${index+1}`);
+            return <div className="season-level" key={index}><span className="season-level-number">{index + 1}</span><article className={`reward-card ${freeClaimed?'is-collected':''}`}><RewardArt reward={free} /><span className="reward-state">{freeClaimed?<RewardCollected/>:<button className="reward-claim-button" disabled={busy||!state||state.season.level<index+1} onClick={()=>void claim('free',index+1)}>{state&&state.season.level>=index+1?'Resgatar':'🔒 Ganhe XP'}</button>}</span></article><article className={`reward-card reward-card--premium ${premiumClaimed?'is-collected':''}`}><RewardArt reward={premium} /><span className="reward-state">{premiumClaimed?<RewardCollected/>:<button className="reward-claim-button" disabled={busy||!state?.season.premium||state.season.level<index+1} onClick={()=>void claim('premium',index+1)}>{!state?.season.premium?'🔒 Premium':state.season.level<index+1?'🔒 Ganhe XP':'Resgatar'}</button>}</span></article></div>;
           })}
         </div>
       </div><p className="rewards-footnote">Temporada até {state?.season.ends_on??'…'} (Brasília). O XP ganho desde sua entrada nesta temporada conta para o passe, incluindo prêmios de XP. Cada prêmio pode ser resgatado uma vez; itens já possuídos não são duplicados.</p>

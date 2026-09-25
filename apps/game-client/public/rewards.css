@@ -200,3 +200,24 @@ dialog.reward-item-preview--wide{width:min(960px,94vw)}
 .mission-item--bonus{background:linear-gradient(110deg,#302919,#162436);border-color:#ba9952}.missions-footnote{margin:10px 0 0}
 @media(max-width:900px),(max-height:500px){.daily-missions{padding:8px}.mission-item{padding:8px;gap:7px}.mission-copy h3{font-size:12px}.mission-copy p{font-size:10px}.mission-prize b{font-size:11px}.site-header .reward-shortcut--missions>svg{width:21px;height:24px}}
 @media(max-width:760px){.site-header .reward-shortcut{width:29px;flex:0 0 29px;padding:2px}.site-header .reward-shortcut>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}
+/* Consistent claim controls and visible collected state. */
+.rewards-page .reward-claim-button{appearance:none;box-sizing:border-box;display:flex;align-items:center;justify-content:center;width:100%;min-height:34px;margin-top:auto;padding:7px 10px;border:1px solid #efd277;border-radius:7px;background:linear-gradient(135deg,#f2d475,#c79836);box-shadow:0 2px 8px #0004;color:#201708;font-family:inherit;font-size:12px;font-weight:700;line-height:1.2;cursor:pointer;white-space:normal}
+.rewards-page .reward-claim-button:hover:not(:disabled){filter:brightness(1.1);border-color:#fff0ac}
+.rewards-page .reward-claim-button:focus-visible{outline:2px solid #fff1ad;outline-offset:3px}
+.rewards-page .reward-claim-button:disabled{background:#182231;color:#8796ad;border-color:#35445a;box-shadow:none;cursor:default;opacity:1}
+.rewards-page .reward-claim-button--recover{background:#352818;color:#ffdf91;border-color:#bc9551}
+.reward-collected{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;padding:5px 9px;border:1px solid #62cfaa;border-radius:6px;background:#113e34;color:#a5ffdc!important;font-size:11px!important;font-weight:700;line-height:1.2}
+.reward-collected svg{display:block;width:21px;height:21px;flex:0 0 21px}
+.reward-card.is-collected{border-color:#55bf9a;background:linear-gradient(145deg,#183d35,#101f28);box-shadow:inset 0 0 0 1px #68d7af25}
+.reward-card.is-collected>.reward-claim-button{border-color:#62cfaa;background:#113e34;color:#a5ffdc}
+.reward-claim-button .reward-collected{padding:0;border:0;background:none}
+.reward-card .reward-state{width:100%;margin-top:auto}
+.season-level .reward-card{height:auto;min-height:0;box-sizing:border-box}
+.reward-modal .season-level,.reward-modal .season-labels{grid-template-rows:24px 200px 200px}
+@media(max-width:600px),(max-height:500px){.reward-modal .season-level,.reward-modal .season-labels{grid-template-rows:20px 175px 175px}}
+.season-level .reward-card>.reward-state{display:flex;justify-content:center}
+.mission-item.is-collected{border-color:#59c99e;background:linear-gradient(105deg,#12392f,#101e2c)}
+.mission-item.is-collected .mission-number{width:32px;height:32px;border:2px solid #73e6b4;background:#1d5a45;color:#bcffdb;box-shadow:0 0 12px #4be0a126}
+.mission-number svg{width:23px;height:23px}
+.mission-prize .reward-collected span{font-size:11px;color:inherit}
+@media(max-width:600px),(max-height:500px){.rewards-page .reward-claim-button{min-height:30px;padding:6px;font-size:10px}.reward-collected{font-size:10px!important;padding:4px 6px;gap:4px}.reward-collected svg{width:18px;height:18px;flex-basis:18px}.season-level .reward-card{min-height:165px}.mission-item.is-collected .mission-number{width:27px;height:27px}.mission-prize .reward-collected span{font-size:10px}}
