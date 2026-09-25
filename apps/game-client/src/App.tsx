@@ -3,6 +3,7 @@ import { ShopPage } from './components/Shop';
 import { InventoryPage } from './pages/InventoryPage';
 import { CastlePage } from './pages/CastlePage';
 import { AdventureBattlePage } from './pages/AdventureBattlePage';
+import { AdventureOrientationBoundary } from './components/BattleOrientationGate';
 import { RewardsPage } from './pages/RewardsPage';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
@@ -50,8 +51,8 @@ export function App() {
           <Route path="/loja" element={<ShopAccessRoute />} />
           <Route path="/recompensas" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
           <Route path="/gameplay" element={<AdventureLandingPage />} />
-          <Route path="/gameplay/mapa" element={<AdventureMapPage />} />
-          <Route path="/gameplay/first-chapter" element={<CastlePage />} />
+          <Route path="/gameplay/mapa" element={<ProtectedRoute><AdventureOrientationBoundary><AdventureMapPage /></AdventureOrientationBoundary></ProtectedRoute>} />
+          <Route path="/gameplay/first-chapter" element={<ProtectedRoute><AdventureOrientationBoundary><CastlePage /></AdventureOrientationBoundary></ProtectedRoute>} />
           <Route path="/gameplay/batalha/:battleId" element={<ProtectedRoute><AdventureBattlePage /></ProtectedRoute>} />
           <Route path="/cartas/:cardId" element={<CardDetailPage />} />
           <Route path="/meus-decks" element={<ProtectedRoute><MyDecksPage /></ProtectedRoute>} />
