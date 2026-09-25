@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { LivingPlaymat } from './LivingPlaymat';
 import { Link } from 'react-router-dom';
 import { activeDecisionPlayer, availableInk, getStats, type CardInstance, type GameAction, type GameState, type PlayerId } from '@jogartcg/game-core';
 import { inkBottleAsset, type BotMatch, type DisplayGameCard } from '../game/bot-session';
@@ -176,6 +177,8 @@ export function MatchTable({
   return <div className="game-table-page bot-table" style={{ '--turn-ink': turnColor } as CSSProperties} aria-busy={busy || undefined}>
     <header className="game-table-topbar"><Link className="game-table-brand" to="/jogar"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></Link><div className="game-table-round"><span>Turno {state.turn}</span><strong aria-live="polite">{statusText}</strong></div><div className="game-table-topactions"><button onClick={() => setShowLog(true)} aria-label="Histórico da partida">☷</button><button onClick={() => setExitOpen(true)} aria-label="Sair da mesa">↪ Sair</button></div></header>
     <main className="game-board" aria-label={boardLabel} style={{ backgroundImage: `url("${cosmetics?.bot?.playmat || './brand/lorcana-items/imgCampoAdversario.png'}"),url("${cosmetics?.player?.playmat || './brand/lorcana-items/imgMeuCampo.png'}")` }}>
+      {cosmetics?.bot?.animation==='hades' && cosmetics.bot.playmat && <LivingPlaymat src={cosmetics.bot.playmat} intensity={Number(cosmetics.bot.animation_intensity??.8)} className="battle-living-playmat battle-living-playmat--opponent" />}
+      {cosmetics?.player?.animation==='hades' && cosmetics.player.playmat && <LivingPlaymat src={cosmetics.player.playmat} intensity={Number(cosmetics.player.animation_intensity??.8)} className="battle-living-playmat battle-living-playmat--player" />}
     <div key={`${state.turn}-${state.activePlayer}`} className="match-turn-glow" aria-hidden="true" />
       <Link className="game-board-mobile-brand" to="/jogar"><img src="./brand/logo-jogar-tcg.png" alt="Jogar TCG" /></Link>
       <div className="game-board-mobile-round"><span>Turno {state.turn}</span><strong aria-live="polite">{statusText}</strong></div>

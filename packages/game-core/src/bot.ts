@@ -4,7 +4,7 @@ import {
 } from './engine.js';
 import type { Effect } from './cards.js';
 
-// At most 24 first decisions and 6 * 8 second decisions are simulated per call.
+// Bounded search: 24 roots, 6 * 8 children, then 6 * 2 * 4 grandchildren.
 const ROOT_WIDTH = 24;
 const BEAM_WIDTH = 6;
 const CHILD_WIDTH = 8;
@@ -251,9 +251,9 @@ function isFreeRepeatable(state: GameState, action: GameAction): boolean {
 }
 
 /**
- * Pure deterministic two-decision beam search over the engine's legal actions.
+ * Pure deterministic three-decision beam search over the engine's legal actions.
  * Only public state and our own faceup hand enter the search; unknown draws have
- * a fixed value. Up to 72 transitions are simulated, not a full game-tree proof
+ * a fixed value. Up to 120 transitions are simulated, not a full game-tree proof
  * of safety against concealed cards or combinations beyond the search horizon.
  * Throws when the bot does not own a decision (including a finished game).
  */
@@ -280,9 +280,22 @@ export function chooseBotAction(state: GameState): GameAction {
   for (const { root, children } of beam.slice(0, BEAM_WIDTH)) {
     if (activeDecisionPlayer(root.next) !== 'bot') continue;
     let best = root.score;
+    const descendants: {next:GameState;score:number;key:string}[] = [];
     for (const action of root.next.pending ? children : candidates(root.next, CHILD_WIDTH)) {
       const next = applyAction(root.next, action);
-      if (makesProgress(root.next, next, action)) best = Math.max(best, evaluate(next));
+      if (makesProgress(root.next, next, action)) {
+        const score=evaluate(next);
+        best=Math.max(best,score);
+        descendants.push({next,score,key:actionKey(action)});
+      }
+    }
+    descendants.sort((a,b)=>b.score-a.score||compareKeys(a.key,b.key));
+    for(const child of descendants.slice(0,2)) {
+      if(activeDecisionPlayer(child.next)!=='bot')continue;
+      for(const action of candidates(child.next,4)) {
+        const next=applyAction(child.next,action);
+        if(makesProgress(child.next,next,action))best=Math.max(best,evaluate(next));
+      }
     }
     root.score += (best - root.score) * 0.9;
   }

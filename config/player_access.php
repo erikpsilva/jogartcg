@@ -27,5 +27,5 @@ function playerSessionMatches(array $row, array $session): bool
 
 function playerMayPlay(bool $publicEnabled, ?array $user): bool
 {
-    return $publicEnabled || ($user !== null && (bool) ($user['beta_tester'] ?? false));
+    return $publicEnabled || $user !== null;
 }

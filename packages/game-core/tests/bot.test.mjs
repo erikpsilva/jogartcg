@@ -304,7 +304,7 @@ test('diagnostic: crowded board returns a deterministic legal decision within a 
   const elapsed = performance.now() - start;
   assert.deepEqual(chooseBotAction(state), action);
   assert.ok(elapsed < 2500, `Decision took ${elapsed.toFixed(1)}ms`);
-  t.diagnostic(`${count} legal actions, ${elapsed.toFixed(1)}ms; implementation budget <= 24 root + 6 * 8 child simulations`);
+  t.diagnostic(`${count} legal actions, ${elapsed.toFixed(1)}ms; implementation budget <= 120 transitions over three decisions`);
 });
 
 test('keeps lethal-denying removal in the beam even when many quest actions look better immediately', () => {
@@ -418,6 +418,17 @@ test('hypothetical bounce cannot expose a facedown card identity or read its get
 });
 
 // Opt in to a SELECT-only integration audit with:
+test('plans ink, targeted removal and target selection across three decisions', () => {
+  let state=fixture();
+  state.players.player.lore=18;
+  state.players.player.field=[instance('lethal-target',card({lore:2}))];
+  state.players.bot.hand=[instance('spare',card({cost:8})),instance('answer',actionCard([{op:'banish',target:{kind:'chosen',owner:'opponent',filter:{types:['Character']}}}],{cost:1,inkwell:false}))];
+  let action=chooseLegal(state);assert.equal(action.type,'ink');assert.equal(action.iid,'spare');
+  state=applyAction(state,action);action=chooseLegal(state);assert.equal(action.type,'play');
+  state=applyAction(state,action);action=chooseLegal(state);assert.deepEqual(action.optionIds,['lethal-target']);
+  state=applyAction(state,action);assert.equal(state.players.player.field.length,0);
+});
+
 // node packages/game-core/tests/bot.test.mjs --catalog
 // No credentials/config files, saved decks, accounts, or private records are read.
 if (process.argv.includes('--catalog')) {

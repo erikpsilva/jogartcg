@@ -3,9 +3,9 @@ import { createPortal } from 'react-dom';
 import { NavLink as RouterNavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { useInstallApp } from '../pwa/InstallContext';
-import { useSiteSettings } from '../settings/SiteSettingsContext';
 import { WalletIndicators } from './Shop';
 import { RewardShortcuts } from './RewardShortcuts';
+import { PlayerProgress } from './PlayerProgress';
 
 export function AppHeader({ clientBase, starterActive = false }: { clientBase?: string; starterActive?: boolean } = {}) {
   const NavLink = (props: ComponentProps<typeof RouterNavLink>) => clientBase
@@ -13,7 +13,6 @@ export function AppHeader({ clientBase, starterActive = false }: { clientBase?: 
     : <RouterNavLink {...props} />;
   const { user, loading, logout } = useAuth();
   const navigate = useNavigate();
-  const { playEnabled } = useSiteSettings();
   const { installed, showInstallSuggestion } = useInstallApp();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
@@ -59,13 +58,14 @@ export function AppHeader({ clientBase, starterActive = false }: { clientBase?: 
   const mobileMenu = <div className={`mobile-site-menu ${mobileMenuOpen ? 'mobile-site-menu--open' : ''}`} id="mobile-site-menu" aria-hidden={!mobileMenuOpen}>
     <button type="button" onClick={() => setMobileMenuOpen(false)} aria-label="Fechar menu">×</button>
     <nav aria-label="Navegação mobile">
-      {playEnabled && <NavLink to="/jogar" onClick={() => { setMobileMenuOpen(false); showInstallSuggestion(); }}>Modo Versus<small>Entre na arena</small></NavLink>}
+      {user && <NavLink to="/meus-dados" onClick={() => setMobileMenuOpen(false)}>Meu perfil<small>Personagem, nível e dados pessoais</small></NavLink>}
+      {<NavLink to="/jogar" onClick={() => { setMobileMenuOpen(false); showInstallSuggestion(); }}>Modo Versus<small>Entre na arena</small></NavLink>}
       <NavLink to="/meus-decks" onClick={() => setMobileMenuOpen(false)}>Meus decks<small>Monte e gerencie suas listas</small></NavLink>
       <NavLink to="/cartas" onClick={() => setMobileMenuOpen(false)}>Catálogo<small>Consulte o catálogo completo</small></NavLink>
       <a href="../starter-decks/" className={starterActive ? 'active' : undefined} aria-current={starterActive ? 'page' : undefined} data-native-starters="true">Starter Deck<small>Listas originais para sua coleção</small></a>
       <NavLink to="/gameplay" onClick={() => setMobileMenuOpen(false)}>Aventura Lorcana</NavLink>
       {user && <NavLink to="/inventario" onClick={() => setMobileMenuOpen(false)}>Meu inventário<small>Personagens, playmats e versos</small></NavLink>}
-      {user?.shop_access && <NavLink to="/loja" onClick={() => setMobileMenuOpen(false)}>Loja<small>Playmats e versos de cartas</small></NavLink>}
+      {<NavLink to="/loja" onClick={() => setMobileMenuOpen(false)}>Loja<small>Playmats e versos de cartas</small></NavLink>}
     </nav>
   </div>;
 
@@ -77,19 +77,21 @@ export function AppHeader({ clientBase, starterActive = false }: { clientBase?: 
           <button className="install-button" type="button" disabled={installed} onClick={showInstallSuggestion} aria-label={installed ? 'Aplicativo instalado' : 'Instalar aplicativo'} title={installed ? 'Aplicativo instalado' : 'Instalar aplicativo'}><span aria-hidden="true">{installed ? '✓' : '↓'}</span><span className="install-button__label">{installed ? 'Instalado' : 'Instalar'}</span></button>
         </div>
         <nav className="site-nav site-sidebar" aria-label="Navegação principal">
-          {user?.shop_access && <NavLink to="/loja">Loja</NavLink>}
-          {playEnabled && <NavLink to="/jogar" onClick={showInstallSuggestion}>Modo Versus</NavLink>}<NavLink to="/meus-decks">Meus decks</NavLink><NavLink to="/cartas">Catálogo</NavLink><a href="../starter-decks/" className={starterActive ? 'active' : undefined} aria-current={starterActive ? 'page' : undefined} data-native-starters="true">Starter Deck</a><NavLink to="/gameplay">Aventura Lorcana</NavLink>
+          {user && <NavLink to="/meus-dados">Meu perfil</NavLink>}
+          {<NavLink to="/loja">Loja</NavLink>}
+          {<NavLink to="/jogar" onClick={showInstallSuggestion}>Modo Versus</NavLink>}<NavLink to="/meus-decks">Meus decks</NavLink><NavLink to="/cartas">Catálogo</NavLink><a href="../starter-decks/" className={starterActive ? 'active' : undefined} aria-current={starterActive ? 'page' : undefined} data-native-starters="true">Starter Deck</a><NavLink to="/gameplay">Aventura Lorcana</NavLink>
         </nav>
         <div className="site-header__actions">
           {user && <RewardShortcuts assetBase={clientBase || './'} />}
           {user && <WalletIndicators assetBase={clientBase || './'} />}
+          {user && <PlayerProgress compact assetBase={clientBase || './'} />}
           <div className="site-header__account">{!loading && user ? (
             <details ref={userMenuRef} className="user-menu">
               <summary className="user-chip">{user.foto_perfil ? <img src={user.foto_perfil} alt="" /> : <span>{user.nome.charAt(0)}{user.sobrenome.charAt(0)}</span>}<b>{user.nome}</b><i>⌄</i></summary>
               <div className="user-menu__dropdown" onClick={(event) => { if (event.target instanceof Element && event.target.closest('a, button')) closeUserMenu(); }}>
                 <NavLink to="/inventario"><strong>Meu inventário</strong><small>Personagens, playmats e versos</small></NavLink>
                 <NavLink to="/meus-decks"><strong>Meus decks</strong><small>Listas salvas</small></NavLink>
-                <NavLink to="/meus-dados"><strong>Meus dados</strong><small>Perfil e senha</small></NavLink>
+                <NavLink to="/meus-dados"><strong>Meu perfil</strong><small>Personagem, nível e dados</small></NavLink>
                 <button type="button" onClick={() => void handleLogout()}><strong>Sair</strong><small>Encerrar sessão</small></button>
               </div>
             </details>

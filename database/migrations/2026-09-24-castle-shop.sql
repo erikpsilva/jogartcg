@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS adventure_orders (
+ id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, usuario_id INT NOT NULL,
+ request_key VARCHAR(80) NOT NULL, product_id VARCHAR(40) NOT NULL, quantity INT NOT NULL,
+ gold_spent INT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ UNIQUE KEY request_once(usuario_id,request_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS adventure_starters (
+ usuario_id INT NOT NULL, starter_id VARCHAR(32) NOT NULL, PRIMARY KEY(usuario_id,starter_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS adventure_packs (
+ id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY, usuario_id INT NOT NULL, order_id BIGINT UNSIGNED NOT NULL,
+ art VARCHAR(20) NOT NULL, result_json LONGTEXT NULL, opened_at TIMESTAMP NULL,
+ KEY owner_packs(usuario_id,id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS player_foils (
+ usuario_id INT NOT NULL, card_id INT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+ PRIMARY KEY(usuario_id,card_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+CREATE TABLE IF NOT EXISTS player_foil_tokens (
+ usuario_id INT NOT NULL PRIMARY KEY, tokens INT UNSIGNED NOT NULL DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

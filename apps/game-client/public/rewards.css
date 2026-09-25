@@ -164,3 +164,39 @@
  .reward-modal .season-track{gap:4px}
  .reward-modal .season-scroll{padding-bottom:6px}
 }
+
+.reward-card .reward-inspect{display:flex;flex-direction:column;align-items:center;gap:2px;padding:0;margin:0;border:0;background:none;color:#ffe2a0;cursor:zoom-in;font:inherit;min-width:0}
+.reward-inspect .reward-art{margin:0}
+.reward-inspect-hint{font-size:8px;line-height:1.2}
+.reward-inspect:focus-visible{outline:2px solid #ffdb76;outline-offset:3px;border-radius:5px}
+dialog.reward-item-preview{position:fixed;inset:0;margin:auto;width:min(460px,94vw);max-width:94vw;max-height:94dvh;box-sizing:border-box;overflow:auto;padding:18px;background:#101826;border:1px solid #d6b667;border-radius:12px;color:#f8e6bf;text-align:center}
+.reward-item-preview::backdrop{background:#000b;backdrop-filter:blur(4px)}
+.reward-item-preview h2{font-size:18px;margin:2px 30px 6px}
+.reward-item-preview p{font-size:12px;margin:6px 0}
+.reward-item-preview .reward-item-close{position:absolute;right:7px;top:7px;padding:3px 9px;font-size:22px;background:#111c30;border:1px solid #b99e62;border-radius:6px;color:#ffe1a1;cursor:pointer}
+.reward-item-preview .reward-item-image{display:block;width:auto;max-width:100%;height:auto;max-height:68dvh;object-fit:contain;margin:12px auto;border-radius:8px}
+dialog.reward-item-preview--wide{width:min(960px,94vw)}
+.reward-item-preview>small{font-size:10px;display:block;color:#adbbce}
+.reward-item-foil{display:grid;place-items:center;width:150px;height:210px;margin:15px auto;border:1px solid #ffe2a3;border-radius:12px;background:linear-gradient(130deg,#7853a2,#58bab9,#e4cb85,#9565bc);font-size:60px}
+@media(orientation:landscape) and (max-height:600px){dialog.reward-item-preview{width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;border-radius:0;padding:7px}.reward-item-preview h2{font-size:14px}.reward-item-preview p{font-size:10px}.reward-item-preview .reward-item-image{max-height:calc(100dvh - 85px);margin:5px auto}.reward-item-foil{height:calc(100dvh - 110px);width:110px}}
+
+.reward-item-living{position:relative;aspect-ratio:1694/465;width:100%;max-width:100%;margin:12px auto;overflow:hidden;border-radius:8px}
+.reward-item-preview .reward-item-living>.reward-item-image{display:block;width:100%;height:100%;max-height:none;margin:0;object-fit:fill}
+.reward-item-living>.reward-item-motion{position:absolute;inset:0;width:100%;height:100%;display:block}
+@media(orientation:landscape) and (max-height:600px){.reward-item-living{width:min(100%,calc((100dvh - 85px)*3.643));margin:5px auto}}
+
+.reward-shortcut--missions>svg{width:27px;height:30px;flex-shrink:0}
+.reward-modal-heading>svg{width:32px;height:32px;flex-shrink:0}
+.reward-shortcut--missions{background:linear-gradient(120deg,#193a3b,#111d2d)}
+.daily-missions{padding:12px 16px}
+.missions-notice,.missions-footnote{font-size:11px;color:#b6c5d6;line-height:1.5;margin:0 0 10px}
+.mission-list{display:grid;gap:8px}
+.mission-item{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:10px;padding:12px;border:1px solid #4e5868;border-radius:8px;background:#101c2c}
+.mission-number{display:grid;place-items:center;width:26px;height:26px;border:1px solid #b39658;border-radius:50%;color:#ffe09a;font-size:12px}
+.mission-copy h3{font-size:14px;margin:0 0 5px;color:#f7e5bc}
+.mission-copy p{font-size:11px;line-height:1.4;margin:0 0 5px;color:#bbc9dd}
+.mission-copy small{font-size:10px;color:#95a5bb}
+.mission-prize{display:grid;gap:5px;text-align:right}.mission-prize b{font-size:13px;color:#cbb6ff}.mission-prize small{font-size:11px;color:#ffda79}.mission-prize span{font-size:9px;color:#aab6c8}
+.mission-item--bonus{background:linear-gradient(110deg,#302919,#162436);border-color:#ba9952}.missions-footnote{margin:10px 0 0}
+@media(max-width:900px),(max-height:500px){.daily-missions{padding:8px}.mission-item{padding:8px;gap:7px}.mission-copy h3{font-size:12px}.mission-copy p{font-size:10px}.mission-prize b{font-size:11px}.site-header .reward-shortcut--missions>svg{width:21px;height:24px}}
+@media(max-width:760px){.site-header .reward-shortcut{width:29px;flex:0 0 29px;padding:2px}.site-header .reward-shortcut>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}}

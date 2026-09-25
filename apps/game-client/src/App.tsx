@@ -1,6 +1,8 @@
 import { type ReactNode } from 'react';
 import { ShopPage } from './components/Shop';
 import { InventoryPage } from './pages/InventoryPage';
+import { CastlePage } from './pages/CastlePage';
+import { AdventureBattlePage } from './pages/AdventureBattlePage';
 import { RewardsPage } from './pages/RewardsPage';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { useAuth } from './auth/AuthContext';
@@ -37,7 +39,7 @@ function ShopAccessRoute() {
 export function App() {
   const location = useLocation();
   const { playEnabled, loading } = useSiteSettings();
-  const isGameTable = location.pathname === '/gameplay/mapa' || (playEnabled && !loading && (['/jogar/bot', '/jogar/mesa-teste'].includes(location.pathname) || location.pathname.startsWith('/jogar/online/')));
+  const isGameTable = location.pathname.startsWith('/gameplay/batalha/') || location.pathname === '/gameplay/mapa' || location.pathname === '/gameplay/first-chapter' || (playEnabled && !loading && (['/jogar/bot', '/jogar/mesa-teste'].includes(location.pathname) || location.pathname.startsWith('/jogar/online/')));
   return (
     <div className={`app-shell ${isGameTable ? 'app-shell--game' : ''}`}>
       {!isGameTable && <AppHeader />}
@@ -49,6 +51,8 @@ export function App() {
           <Route path="/recompensas" element={<ProtectedRoute><RewardsPage /></ProtectedRoute>} />
           <Route path="/gameplay" element={<AdventureLandingPage />} />
           <Route path="/gameplay/mapa" element={<AdventureMapPage />} />
+          <Route path="/gameplay/first-chapter" element={<CastlePage />} />
+          <Route path="/gameplay/batalha/:battleId" element={<ProtectedRoute><AdventureBattlePage /></ProtectedRoute>} />
           <Route path="/cartas/:cardId" element={<CardDetailPage />} />
           <Route path="/meus-decks" element={<ProtectedRoute><MyDecksPage /></ProtectedRoute>} />
           <Route path="/meus-dados" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

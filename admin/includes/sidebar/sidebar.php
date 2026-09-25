@@ -23,6 +23,7 @@
             </li>
             <li class="sidebar__item">
                 <a href="<?= adminUrl('produtos') ?>" class="sidebar__link">◇ Produtos da loja</a>
+                <a href="<?= adminUrl('economia') ?>" class="sidebar__link <?= $subRoute === 'economia' ? 'sidebar__link--active' : '' ?>">✦ Controle de XP e Gold</a>
                 <a href="<?= adminUrl('configuracoes') ?>" class="sidebar__link <?= $subRoute === 'configuracoes' ? 'sidebar__link--active' : '' ?>"><i class="fa-solid fa-sliders" aria-hidden="true"></i> Configurações</a>
             </li>
             <li class="sidebar__item">

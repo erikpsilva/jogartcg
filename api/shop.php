@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__.'/player-rewards.php';
 
 function shopCatalog(): array {
     try {
@@ -26,7 +27,13 @@ function battleCosmetics(PDO $pdo, int $deckId): array {
         $id=$row[$type.'_id'];
         if (!$id || !isset($catalog[$id]) || $catalog[$id]['type']!==$type) continue;
         $q=$pdo->prepare('SELECT 1 FROM player_items WHERE usuario_id=? AND item_id=?');$q->execute([$row['usuario_id'],$id]);
-        if ($q->fetchColumn()) $result[$type]='./shop/'.$catalog[$id]['image'];
+        if ($q->fetchColumn()) {
+            $result[$type]='./shop/'.$catalog[$id]['image'];
+            if ($type==='playmat') {
+                $result['animation']=($catalog[$id]['animation']??'none')==='hades'?'hades':'none';
+                $result['animation_intensity']=max(0,min(1.5,(float)($catalog[$id]['animation_intensity']??0.8)));
+            }
+        }
     }
     return $result;
 }
@@ -38,6 +45,41 @@ function handleShopRoutes(PDO $pdo, array $segments, string $method): void {
     if (($segments[1] ?? '') !== 'shop') return;
     header('Cache-Control: private, no-store');
     $action = $segments[2] ?? '';
+    if($action==='rewards'){
+        $uid=requireUserId($pdo);
+        try{
+            if($method==='GET'&&count($segments)===3)respond(['success'=>true,'data'=>rewardState($pdo,$uid)]);
+            if($method==='POST'&&count($segments)===4){requireCsrf();respond(['success'=>true,'data'=>rewardAction($pdo,$uid,$segments[3],readRequestPayload())]);}
+            respond(['success'=>false,'message'=>'Rota indisponível.'],404);
+        }catch(RuntimeException $e){if($e instanceof PDOException){error_log($e->getMessage());respond(['success'=>false,'message'=>'Não foi possível registrar a recompensa.'],503);}respond(['success'=>false,'message'=>$e->getMessage()],422);}
+    }
+    if ($method==='GET' && $action==='profile' && count($segments)===3) {
+        $uid=requireUserId($pdo);
+        require_once dirname(__DIR__).'/config/economy.php';
+        $values=economySettings($pdo);
+        $q=$pdo->prepare('SELECT xp,gold FROM player_wallets WHERE usuario_id=?');
+        $q->execute([$uid]);
+        $wallet=$q->fetch(PDO::FETCH_ASSOC)?:['xp'=>0,'gold'=>0];
+        $xp=max(0,(int)$wallet['xp']);$step=max(1,$values['level_xp']);$cap=min(999,max(0,$values['level_cap']));
+        $level=min($cap,intdiv($xp,$step));
+        respond(['success'=>true,'data'=>['xp'=>$xp,'gold'=>(int)$wallet['gold'],'level'=>$level,'level_cap'=>$cap,'level_xp'=>$step,'progress_xp'=>$level===$cap?$step:$xp%$step,'character'=>['id'=>'mickey-knight','name'=>'Mickey Knight','image'=>'adventure/mickey-idle.gif']]]);
+    }
+    if ($method==='GET' && $action==='missions' && count($segments)===3) {
+        $uid=requireUserId($pdo);
+        $q=$pdo->prepare('SELECT 1 FROM player_login_days WHERE usuario_id=? AND login_date=?');$q->execute([$uid,rewardToday()->format('Y-m-d')]);$logged=(bool)$q->fetchColumn();
+        $pdo->exec("SET time_zone = '+00:00'");
+        $q=$pdo->prepare('SELECT COUNT(*) FROM adventure_battles WHERE usuario_id=? AND finished_at>=?');$q->execute([$uid,rewardToday()->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s')]);$adventureProgress=min(3,(int)$q->fetchColumn());
+        $q=$pdo->prepare('SELECT 1 FROM player_reward_claims WHERE usuario_id=? AND reward_key=?');$q->execute([$uid,'mission:adventure:'.rewardToday()->format('Y-m-d')]);$adventureClaimed=(bool)$q->fetchColumn();
+        require_once dirname(__DIR__).'/config/economy.php';
+        $v=economySettings($pdo);
+        respond(['success'=>true,'data'=>['ready'=>false,'missions'=>[
+            ['progress'=>$logged?1:0,'claimed'=>$logged,'id'=>'login','name'=>'Entrar no jogo','description'=>'Faça login todos os dias.','goal'=>1,'xp'=>$v['login_xp']],
+            ['id'=>'friends','name'=>'Jogar 3 partidas contra amigos','description'=>'Pode jogar as três contra a mesma pessoa.','goal'=>3,'xp'=>$v['friends_xp']],
+            ['id'=>'bot','name'=>'Jogar contra o bot','description'=>'Conclua uma partida no modo Versus contra o bot.','goal'=>1,'xp'=>$v['bot_xp']],
+            ['progress'=>$adventureProgress,'claimed'=>$adventureClaimed,'id'=>'adventure','name'=>'Explorar a Aventura Lorcana','description'=>'Conclua três partidas na aventura, vencendo ou perdendo.','goal'=>3,'xp'=>$v['adventure_mission_xp']],
+            ['id'=>'all','name'=>'Completar todas as missões','description'=>'Conclua as quatro missões acima.','goal'=>4,'xp'=>$v['all_xp'],'gold'=>$v['all_gold']],
+        ]]]);
+    }
     if ($method === 'GET' && $action === '') {
         $ready = shopReady($pdo); $user = loadAuthenticatedPlayerRow($pdo);
         $wallet = ['xp'=>0,'gold'=>0]; $owned=[];

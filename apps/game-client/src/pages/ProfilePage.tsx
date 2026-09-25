@@ -1,5 +1,6 @@
 import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from 'react';
 import { useAuth } from '../auth/AuthContext';
+import { PlayerProgress } from '../components/PlayerProgress';
 import { getUserProfile, updateUserProfile, type ProfileErrors, type ProfileValues, type UserProfile } from '../services/auth-api';
 import { formatCpf, formatPhone, passwordStrength, validatePassword, validatePhone } from '../validation/registration';
 
@@ -79,7 +80,8 @@ export function ProfilePage() {
 
   return (
     <div className="profile-page page-container">
-      <header className="registration-heading"><span className="eyebrow"><i /> Sua conta</span><h1>Meus dados.</h1><p>Atualize seus dados pessoais e sua senha de acesso.</p></header>
+      <header className="registration-heading"><span className="eyebrow"><i /> Sua conta</span><h1>Meu perfil.</h1><p>Seu personagem, nível e dados pessoais.</p></header>
+      <PlayerProgress />
       <form className="registration-card" onSubmit={submit} noValidate>
         <section className="profile-photo-field">
           <div className="profile-photo-field__preview">{photoPreview ? <img src={photoPreview} alt="Nova foto" /> : profile.foto_perfil ? <img src={profile.foto_perfil} alt="Foto de perfil" /> : `${profile.nome.charAt(0)}${profile.sobrenome.charAt(0)}`}</div>

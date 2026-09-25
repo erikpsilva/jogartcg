@@ -4,7 +4,7 @@ import { apiUrl } from '../config/api';
 export type RoomStatus = 'aguardando' | 'em_jogo' | 'encerrada';
 
 export interface RoomPlayer {
-  cosmetics?: { playmat: string | null; sleeve: string | null };
+  cosmetics?: { playmat: string | null; sleeve: string | null; animation?: 'none' | 'hades'; animation_intensity?: number };
   seat: 1 | 2;
   name: string;
   avatar: string | null;

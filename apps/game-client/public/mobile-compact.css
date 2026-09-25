@@ -116,3 +116,74 @@
  .deck-builder .deck-fullscreen{z-index:250}
  .deck-builder .card-preview{z-index:260}
 }
+
+/* Card zooms use the entire landscape mobile viewport, not a short centered box. */
+@media(orientation:landscape) and (max-height:600px) and (max-width:1200px){
+ .card-preview{position:fixed;inset:0;padding:0!important;align-items:stretch}
+ .card-preview .card-preview__dialog--complete,
+ dialog.castle-card-detail,
+ .match-dialog:has(.match-card-detail) .match-dialog__panel{
+   width:100vw!important;max-width:100vw!important;height:100dvh!important;max-height:100dvh!important;
+   margin:0!important;border-radius:0!important;box-sizing:border-box;padding:8px!important;overflow:hidden
+ }
+ .card-preview .card-preview__dialog--complete{display:grid;grid-template-columns:minmax(0,40%) minmax(0,1fr);gap:12px}
+ .card-preview__visual{min-height:0;height:100%;overflow:auto}
+ .card-preview__content{min-height:0;overflow-y:auto;padding-right:28px}
+ .card-preview__visual .card-gallery__viewport{max-height:calc(100dvh - 52px)}
+ .card-preview__visual .card-gallery__slide img{height:calc(100dvh - 52px);width:100%;object-fit:contain}
+ .card-preview__visual .card-gallery__thumbs{max-height:32px;overflow:auto}
+ .card-preview__visual .card-gallery__thumbs img{height:25px;width:auto}
+ .card-preview__close{position:absolute;top:5px;right:6px;z-index:5}
+ .castle-card-detail .castle-detail-layout{display:grid;grid-template-columns:minmax(0,40%) minmax(0,1fr);gap:12px;height:100%;min-height:0}
+ .castle-card-detail .castle-detail-layout>div:first-child{width:100%;height:100%;margin:0;min-height:0}
+ .castle-card-detail .castle-card-art{height:100%}
+ .castle-card-detail .castle-card-art img{height:100%;width:100%;object-fit:contain}
+ .castle-card-detail .castle-detail-layout>section{overflow-y:auto;min-height:0;padding-right:28px}
+ .castle-card-detail .castle-detail-close{position:absolute;top:5px;right:6px;float:none}
+ .castle-detail-layout h2{font-size:16px;margin-top:0}
+ .castle-detail-layout p{font-size:12px}
+ .match-dialog:has(.match-card-detail){inset:0;padding:0}
+ .match-dialog:has(.match-card-detail) .match-dialog__panel>h2{font-size:14px;margin:0 32px 5px 0}
+ .match-card-detail{display:grid!important;grid-template-columns:minmax(0,40%) minmax(0,1fr);gap:12px;height:calc(100dvh - 42px);overflow:hidden}
+ .match-card-detail>img{height:100%;max-height:none;width:100%;object-fit:contain}
+ .match-card-detail__body{overflow:auto;min-height:0}
+ .starter-content #zoom{position:fixed;inset:0;width:100vw;max-width:100vw;height:100dvh;max-height:100dvh;margin:0;padding:4px;border-radius:0}
+ .starter-content #zoom-image{height:calc(100dvh - 8px);max-height:calc(100dvh - 8px);max-width:100%;margin:auto;object-fit:contain}
+}
+
+/* Catalog detail is a page, not a zoom dialog: fit below the fixed header. */
+@media(orientation:landscape) and (max-height:600px) and (max-width:1200px){
+ .app-shell:not(.app-shell--game) .site-main .card-detail{
+  position:fixed;top:var(--site-header-height,50px);bottom:0;left:0;right:0;z-index:20;
+  width:100%;max-width:none;margin:0;padding:6px 10px;box-sizing:border-box;
+  display:flex;flex-direction:column;gap:5px;overflow:hidden;background:#080d15
+ }
+ .card-detail>.back-link{flex:0 0 auto;font-size:10px;margin:0;padding:2px 0}
+ .app-shell:not(.app-shell--game) .site-main .card-detail__layout{
+  display:grid;grid-template-columns:minmax(0,38%) minmax(0,1fr);gap:12px;flex:1;min-height:0;align-items:stretch
+ }
+ .card-detail__visual{position:static;min-width:0;min-height:0;overflow:hidden}
+ .card-detail__visual>p{display:none}
+ .card-detail__visual .card-gallery{height:100%;display:flex;flex-direction:column;min-height:0}
+ .card-detail__visual .card-gallery__viewport{flex:1;min-height:0;aspect-ratio:auto;height:auto}
+ .card-detail__visual .card-gallery__track,.card-detail__visual .card-gallery__slide{height:100%;min-height:0}
+ .card-detail__visual .card-gallery__slide img{display:block;width:100%;height:100%;max-height:100%;object-fit:contain;border-radius:5px}
+ .card-detail__visual .card-gallery__thumbs{flex:0 0 auto;max-height:32px;gap:4px;margin-top:4px;overflow:auto}
+ .card-detail__visual .card-gallery__thumbs button{padding:1px}
+ .card-detail__visual .card-gallery__thumbs img{height:25px;width:auto}
+ .card-detail__visual .card-gallery__thumbs small{display:none}
+ .card-detail__content{min-width:0;min-height:0;overflow-y:auto;padding:0 5px 12px 0}
+ .card-detail .card-detail__heading h1{font-size:19px;line-height:1.15;margin:5px 0 9px}
+ .card-detail .eyebrow{font-size:8px}
+ .card-detail .detail-tags{gap:5px;margin:8px 0;flex-wrap:wrap}
+ .card-detail .detail-tags>span{padding:5px;font-size:9px}
+ .card-detail .detail-stats{gap:5px;margin:8px 0}
+ .card-detail .detail-stats>div{padding:6px}
+ .card-detail .detail-stats dt{font-size:8px}
+ .card-detail .detail-stats dd{font-size:16px}
+ .card-detail .translation-panel,.card-detail .original-panel{padding:10px;margin:8px 0;font-size:11px}
+ .card-detail .translation-panel p,.card-detail .original-panel p{font-size:12px;line-height:1.5}
+ .card-detail .card-detail__actions{margin-top:10px;gap:6px;flex-wrap:wrap}
+ .card-detail .card-detail__actions .button{font-size:10px;padding:7px 10px}
+ .card-detail .card-detail__actions>span{font-size:10px}
+}

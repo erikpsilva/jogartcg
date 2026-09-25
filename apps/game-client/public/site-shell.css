@@ -36,6 +36,14 @@
  .site-header .site-header__actions>.button--primary{grid-column:2 / 4;grid-row:2;justify-content:center;min-height:38px;font-size:11px;padding:8px 12px;margin:0}
  .site-header .user-menu__dropdown{max-width:calc(100vw - 24px)}
 }
+/* Player profile and compact level shortcut. */
+.player-level-icon{display:flex;align-items:center;justify-content:center;gap:3px;flex:0 0 auto;min-width:34px;height:34px;padding:0 5px;border:1px solid #b89a39;border-radius:10px;color:#ffda62;background:#151d2b;text-decoration:none;font-size:12px}
+.player-level-icon:focus-visible{outline:2px solid #ffe59a;outline-offset:3px}
+.player-profile-progress{display:flex;align-items:center;gap:24px;padding:20px;margin-bottom:24px;border:1px solid #9f843b;border-radius:14px;background:#101925;color:#f4deb0}
+.player-profile-character{display:flex;flex-direction:column;align-items:center;flex:0 0 160px;gap:5px}
+.player-profile-character img{width:140px;height:150px;object-fit:contain}
+.player-profile-stats{flex:1;min-width:0}.player-profile-stats h2{margin:5px 0}.player-profile-stats h2 small{font-size:14px;color:#a9b7cb}.player-profile-stats progress{width:100%;accent-color:#f5cd4d}.player-profile-stats p{font-size:14px}.player-profile-stats a{color:#ffda62}
+@media(max-width:600px){.player-profile-progress{padding:12px;gap:12px}.player-profile-character{flex-basis:100px;font-size:11px}.player-profile-character img{width:95px;height:110px}.player-profile-stats h2{font-size:20px}.player-profile-stats p{font-size:12px}.player-level-icon{min-width:25px;height:28px;padding:0 3px;font-size:10px}.player-level-icon>span{display:none}}
 @media(min-width:1101px){
  .site-header{position:fixed;top:0;left:0;right:0;width:100%;height:89px;box-sizing:border-box}
  .app-shell:not(.app-shell--game){padding-top:89px;box-sizing:border-box;grid-template-rows:1fr auto}
@@ -160,4 +168,41 @@
  .site-header .site-header__brand-group .install-button{width:28px;height:28px;min-height:28px;padding:0;font-size:16px}
  .site-header .site-header__brand-group .install-button__label{display:none}
  .site-header .reward-shortcuts{grid-column:1/-1;grid-row:2}
+}
+
+/* Main mobile header: one row, with compact reward shortcuts. */
+@media(max-width:1100px){
+ .site-header .site-header__inner{display:flex;flex-wrap:nowrap;align-items:center;gap:6px;padding:5px 8px}
+ .site-header .site-header__brand-group{flex:0 0 auto;gap:4px}
+ .site-header .site-header__actions{display:flex;flex:1;min-width:0;align-items:center;justify-content:flex-end;gap:6px}
+ .site-header .reward-shortcuts{display:flex;flex:0 1 auto;width:auto;margin:0;gap:5px}
+ .site-header .reward-shortcut{flex:0 1 auto;min-width:0;min-height:30px;padding:3px 6px;gap:4px}
+ .site-header .reward-shortcut strong{font-size:8px;white-space:nowrap}
+ .site-header .reward-shortcut img{width:21px;height:24px}
+ .site-header .reward-shortcut small{display:none}
+ .site-header .shop-wallet{flex:0 0 auto;margin:0;gap:4px}
+ .site-header .shop-wallet>span{min-width:0;grid-template-columns:18px auto;gap:0 3px;padding:3px 5px}
+ .site-header .shop-wallet .currency-icon{width:18px;height:18px}
+ .site-header .shop-wallet b{font-size:10px}
+ .site-header .shop-wallet small{font-size:7px}
+ .site-header .site-header__account{display:flex;flex:0 0 auto;align-items:center;gap:5px}
+ .site-header .user-chip b{display:none}
+ .site-header .mobile-menu-toggle{width:30px;height:30px;min-height:30px;padding:6px}
+}
+@media(max-width:620px){
+ .site-header .reward-shortcut{width:29px;height:30px;flex:0 0 29px;padding:2px}
+ .site-header .reward-shortcut>span{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+ .site-header .reward-shortcut img{width:23px;height:25px}
+ .site-header .brand,.site-header .brand img{width:40px;height:30px}
+ .site-header .site-header__inner,.site-header .site-header__actions{gap:4px}
+ .site-header .user-chip i{display:none}
+}
+@media(max-width:380px){
+ .site-header .site-header__inner{padding:4px}
+ .site-header .brand,.site-header .brand img{width:34px;height:28px}
+ .site-header .site-header__brand-group .install-button{width:23px;height:26px;min-height:26px}
+ .site-header .shop-wallet>span{padding:3px;grid-template-columns:14px auto}
+ .site-header .shop-wallet .currency-icon{width:14px;height:14px}
+ .site-header .shop-wallet b{font-size:9px}
+ .site-header .user-chip>span,.site-header .user-chip>img{width:24px;height:24px;font-size:10px}
 }

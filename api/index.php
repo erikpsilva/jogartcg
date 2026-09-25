@@ -12,6 +12,7 @@ require_once __DIR__ . '/game.php';
 require_once __DIR__ . '/bugs.php';
 require_once __DIR__ . '/rooms.php';
 require_once __DIR__ . '/shop.php';
+require_once __DIR__ . '/adventure.php';
 require_once dirname(__DIR__) . '/config/site_settings.php';
 
 header('Content-Type: application/json; charset=utf-8');
@@ -142,6 +143,7 @@ if ($resource === 'settings') {
 // Contas de jogador. Retorna sozinho quando a rota e de /auth.
 handleAuthRoutes($pdo, $segments, $requestMethod);
 handleShopRoutes($pdo, $segments, $requestMethod);
+handleAdventureRoutes($pdo, $segments, $requestMethod);
 handleDeckRoutes($pdo, $segments, $requestMethod);
 handleStarterRoutes($pdo, $segments, $requestMethod);
 handleGameRoutes($pdo, $segments, $requestMethod);
